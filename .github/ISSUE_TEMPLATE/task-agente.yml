@@ -1,0 +1,49 @@
+name: Task per agente
+description: Proponi un caso d'uso da pianificare, implementare e verificare
+title: "[UC] "
+labels: [task-agente]
+body:
+  - type: input
+    id: use_case
+    attributes:
+      label: Identificativo del caso d'uso
+      description: Usa l'identificativo approvato nel RAD.
+    validations:
+      required: true
+  - type: textarea
+    id: specs
+    attributes:
+      label: Specifiche
+      description: Un percorso per riga sotto docs/. Includi il caso d'uso e i modelli pertinenti già su main.
+    validations:
+      required: true
+  - type: textarea
+    id: code_scope
+    attributes:
+      label: Ambito del codice
+      description: Un file o una directory per riga. Per una directory aggiungi la barra finale.
+      placeholder: src/area-del-caso-d-uso/
+    validations:
+      required: true
+  - type: textarea
+    id: test_inputs
+    attributes:
+      label: Interfacce e test frame
+      description: Un file sotto docs/ per riga. Includi le firme pubbliche e i test frame con esiti attesi.
+    validations:
+      required: true
+  - type: textarea
+    id: test_scope
+    attributes:
+      label: Ambito dei test
+      description: Un nuovo file di test o una directory per riga. Per una directory aggiungi la barra finale.
+      placeholder: tests/area-del-caso-d-uso/
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criteri di accettazione
+      description: Indica comportamenti attesi, casi limite ed errori osservabili.
+    validations:
+      required: true
