@@ -12,8 +12,9 @@ aggiungere una verifica tecnica alla revisione delle PR.
    issue avviano i workflow presenti sul branch predefinito.
 2. Il titolare dell'abbonamento esegue `claude setup-token` in locale e completa
    l'accesso ad Anthropic. In
-   [Settings → Secrets and variables → Actions](https://github.com/unisa-gps-team08/MindCompanion/settings/secrets/actions)
-   salva il valore come repository secret `CLAUDE_CODE_OAUTH_TOKEN`.
+   [Settings → Environments](https://github.com/unisa-gps-team08/MindCompanion/settings/environments)
+   apre **MindCompanion Workflow** e salva il valore come environment secret
+   `CLAUDE_CODE_OAUTH_TOKEN`. I job di Claude usano questo environment.
    I run usano la quota di quell'abbonamento.
 3. In **Settings → Actions → General** verifica che Actions sia attivo, che la
    policy consenta le action fissate nel workflow. **Allow GitHub Actions
