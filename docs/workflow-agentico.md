@@ -106,17 +106,20 @@ test frame, test ed esito. La PR deve essere leggibile e spiegabile dall'autore.
 
 ## GitHub Projects
 
-Collega alla repo una board **MindCompanion Workflow** con queste opzioni in
-**Status**: Da pianificare, Piano, Implementazione, Test, Revisione e Fatto.
-Aggiungi i campi **Caso d'uso** (testo), **Agente usato** (scelta singola),
-**Tentativi** (numero) e **Revisore** (testo). In **Workflows**, configura
-**Auto-add to project** per questa repo con filtro `label:task-agente`. Configura
-**Item closed** e **Pull request merged** per impostare lo stato **Fatto**.
+La board ha sei colonne di stato, da **Da pianificare** a **Fatto**, e i campi
+**Caso d'uso**, **Agente usato**, **Tentativi** e **Revisore**.
+[Apri la board MindCompanion Workflow](https://github.com/orgs/unisa-gps-team08/projects/1/views/1).
 
-Salva le viste del PM con i filtri `is:issue is:open label:task-agente
--label:fase:piano`, `is:issue is:open label:fase:piano
--label:fase:implementazione`, `is:pr is:open draft:true`,
-`is:pr is:open draft:false review:required` e `is:pr is:open status:failure`.
+**Auto-add to project** aggiunge gli elementi della repo con `label:task-agente`.
+**Item closed** e **Pull request merged** impostano lo stato **Fatto**.
+[Apri le automazioni](https://github.com/orgs/unisa-gps-team08/projects/1/workflows).
+
+Nel progetto trovi le viste **Da pianificare**, **Piani da approvare**, **PR in
+bozza**, **PR in revisione** e **Per agente usato**. La vista **PR in revisione**
+usa lo stato della board. Per consultare lo stato effettivo delle review e dei
+check usa le ricerche della repo.
+[PR in attesa di revisione](https://github.com/unisa-gps-team08/MindCompanion/pulls?q=is%3Apr+is%3Aopen+-is%3Adraft+review%3Arequired),
+[PR con CI fallita](https://github.com/unisa-gps-team08/MindCompanion/pulls?q=is%3Apr+is%3Aopen+status%3Afailure).
 
 ## Seconda revisione con Copilot
 
