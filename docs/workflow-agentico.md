@@ -16,9 +16,11 @@ aggiungere una verifica tecnica alla revisione delle PR.
    salva il valore come repository secret `CLAUDE_CODE_OAUTH_TOKEN`.
    I run usano la quota di quell'abbonamento.
 3. In **Settings → Actions → General** verifica che Actions sia attivo, che la
-   policy consenta le action fissate nel workflow e che **Allow GitHub Actions
-   to create and approve pull requests** sia abilitato per la creazione della
-   PR in bozza. I job dichiarano i propri permessi.
+   policy consenta le action fissate nel workflow. **Allow GitHub Actions
+   to create and approve pull requests** abilita la creazione automatica della
+   PR in bozza. Con questa opzione disattivata, il workflow pubblica il branch
+   e il riepilogo del run fornisce il link per aprire la PR in bozza. I job
+   dichiarano i propri permessi.
 4. Crea le label `task-agente`, `fase:piano`, `fase:implementazione`, `fase:test`
    e `fase:revisione` in **Issues → Labels**. Se usi GitHub CLI con accesso Write,
    puoi eseguire dalla repo:

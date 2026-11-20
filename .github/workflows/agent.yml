@@ -43,8 +43,8 @@ jobs:
           show_full_output: false
           prompt: Imposta il valore del campo marker su OAUTH_OK.
           claude_args: >-
-            --restricted --strict-mcp-config --disallowedTools 'mcp__*'
-            --tools "" --max-turns 2
+            --restricted --strict-mcp-config --disallowedTools 'Read,mcp__*'
+            --tools Read --max-turns 2
             --json-schema '{"type":"object","properties":{"marker":{"type":"string","enum":["OAUTH_OK"]}},"required":["marker"],"additionalProperties":false}'
       - name: Verifica la risposta
         env:

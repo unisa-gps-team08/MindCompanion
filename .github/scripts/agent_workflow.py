@@ -331,6 +331,29 @@ def comment_report(state, report):
     api(endpoint, body={"body": body})
 
 
+def explain_manual_pull_request():
+    branch_comparison = f"{DEFAULT_BRANCH}...{BRANCH}"
+    action = f"[Apri la PR in bozza]({os.environ['GITHUB_SERVER_URL']}/{REPOSITORY}/compare/{branch_comparison}?expand=1)"
+    instructions = (
+        f"## Branch pronto per la pull request\n\n{action} e aggiungi "
+        f"`Closes #{NUMBER}` alla descrizione. Dopo averla creata, applica "
+        "`fase:test` all'issue."
+    )
+    with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a", encoding="utf-8") as summary:
+        print(instructions, file=summary)
+
+
+def pull_request_creation_disabled(error):
+    if error.code not in {403, 422}:
+        return False
+    try:
+        message = json.loads(error.read()).get("message", "")
+    except (ValueError, AttributeError):
+        return False
+    return (isinstance(message, str)
+            and "github actions is not permitted to create or approve pull requests" in message.lower())
+
+
 def publish_changes(state, report):
     git("config", "user.name", "github-actions[bot]")
     git("config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
@@ -372,7 +395,10 @@ def publish_changes(state, report):
                     "per una seconda revisione tecnica."
                 ),
             })
-        except HTTPError:
+        except HTTPError as error:
+            if pull_request_creation_disabled(error):
+                explain_manual_pull_request()
+                return
             print(f"Branch pubblicato. Apri una PR in bozza da {BRANCH} verso "
                   f"{DEFAULT_BRANCH} e aggiungi Closes #{NUMBER}.", file=sys.stderr)
             raise
