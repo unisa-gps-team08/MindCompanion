@@ -3,8 +3,8 @@
 Il workflow usa Claude Code con un token OAuth di un abbonamento Claude idoneo.
 GitHub Actions invia a Claude il contesto in un job con accesso GitHub in lettura.
 Un job separato pubblica i commenti o applica le patch dopo averne verificato
-l'ambito. GitHub Copilot è facoltativo e può essere usato per chiedere una
-seconda revisione della PR.
+l'ambito. [GitHub Copilot Code Review](#seconda-revisione-con-copilot) può
+aggiungere una verifica tecnica alla revisione delle PR.
 
 ## Attivazione
 
@@ -73,3 +73,27 @@ la revisione e la CI rimane un workflow separato. Quando la CI applicativa è
 attiva, rendi obbligatorio `build` nel ruleset `protect-main`. Aggiungi
 `CODEOWNERS` e il relativo requisito dopo aver identificato i responsabili
 GitHub del team.
+
+## Seconda revisione con Copilot
+
+Claude confronta il diff con le specifiche e il piano. Copilot valuta anche
+controlli di accesso, qualità delle asserzioni e permessi della CI seguendo
+[`.github/copilot-instructions.md`](../.github/copilot-instructions.md).
+Il revisore del team valuta i rilievi e approva la PR.
+
+- **Su richiesta.** Sulla PR pronta, seleziona **Reviewers → Copilot → Request**
+  con un account che ha accesso a Copilot Code Review. Questa funzione usa
+  l'accesso Copilot e i relativi crediti, senza aggiungere una chiave al workflow.
+- **Automatica.** Un amministratore può importare
+  [`copilot-code-review.json`](../.github/rulesets/copilot-code-review.json)
+  da **Settings → Rulesets → New ruleset → Import a ruleset**. La regola
+  richiede una revisione iniziale per le PR idonee e pronte che puntano al
+  branch predefinito. Per le PR aperte da `github-actions[bot]`, l'addebito
+  automatico ricade sull'organizzazione. Se GitHub non assegna Copilot,
+  un membro con accesso può richiedere la revisione dalla PR.
+
+Per conservare l'approvazione umana nel ruleset `protect-main`, lascia
+disattivata l'opzione che fa contare le approvazioni di Copilot per il merge.
+Consulta le guide a
+[Copilot Code Review](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-code-review)
+e alla [configurazione delle revisioni automatiche](https://docs.github.com/en/copilot/how-tos/copilot-on-github/set-up-copilot/configure-code-review).

@@ -367,7 +367,9 @@ def publish_changes(state, report):
                 "body": (
                     f"Closes #{NUMBER}\n\n## Implementazione\n\n{report}\n\n"
                     "Il piano approvato e gli artefatti sono nell'issue. Applica "
-                    "`fase:test` all'issue mentre la PR è in bozza."
+                    "`fase:test` all'issue mentre la PR è in bozza. Quando la PR è "
+                    "pronta, puoi richiedere **Copilot** dal menu **Reviewers** "
+                    "per una seconda revisione tecnica."
                 ),
             })
         except HTTPError:

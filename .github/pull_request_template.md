@@ -16,3 +16,5 @@ Closes #
 
 - [ ] Ho letto le modifiche e posso spiegarle
 - [ ] Ho confrontato l'implementazione con le specifiche
+
+Per una seconda revisione tecnica, richiedi **Copilot** dal menu **Reviewers**.
