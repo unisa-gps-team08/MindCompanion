@@ -12,6 +12,9 @@ on:
       turns:
         type: number
         required: true
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
 
 permissions: {}
 
@@ -32,6 +35,15 @@ jobs:
       phase: ${{ steps.prepare.outputs.phase }}
       artifact: ${{ steps.upload.outputs.artifact-id }}
     steps:
+      - name: Verifica il secret OAuth dell'environment
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [[ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]]; then
+            echo '::error::Configura CLAUDE_CODE_OAUTH_TOKEN in MindCompanion Workflow e passalo al workflow riutilizzabile.'
+            exit 1
+          fi
+
       - name: Leggi la versione approvata del repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
