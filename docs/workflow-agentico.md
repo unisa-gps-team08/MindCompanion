@@ -23,7 +23,7 @@ aggiungere una verifica tecnica alla revisione delle PR.
    e il riepilogo del run fornisce il link per aprire la PR in bozza. I job
    dichiarano i propri permessi.
 4. Crea le label `task-agente`, `fase:piano`, `fase:implementazione`, `fase:test`
-   e `fase:revisione` in **Issues → Labels**. Se usi GitHub CLI con accesso Write,
+   e `prova` in **Issues → Labels**. Se usi GitHub CLI con accesso Write,
    puoi eseguire dalla repo:
 
    ```sh
@@ -31,7 +31,7 @@ aggiungere una verifica tecnica alla revisione delle PR.
    gh label create fase:piano --color FBCA04
    gh label create fase:implementazione --color 1D76DB
    gh label create fase:test --color 5319E7
-   gh label create fase:revisione --color B60205
+   gh label create prova --color B60205
    ```
 
 La configurazione passa il `GITHUB_TOKEN` in sola lettura alla Claude Code
@@ -39,10 +39,13 @@ Action per operare su GitHub. L'autenticazione del modello usa il secret OAuth.
 I job di pubblicazione usano permessi GitHub propri. L'action di Anthropic
 [supporta il token GitHub esplicito](https://code.claude.com/docs/en/github-actions#action-parameters).
 
-## Verifica di OAuth
+## Prove di configurazione e OAuth
 
-Dopo il merge e il salvataggio del secret, apri **Actions → Workflow agentico →
-Run workflow**, seleziona `main` e avvia il run. Il job **Verifica accesso
+Per verificare evento e pubblicazione del commento, aggiungi `prova` a una
+issue di prova. Il workflow **Saluto** deve rispondere «Ciao!».
+
+Dopo il merge e il salvataggio del secret, apri **Actions → Verifica OAuth di
+Claude → Run workflow**, seleziona `main` e avvia il run. Il job **Verifica accesso
 OAuth** invia a Claude una richiesta minima e controlla il valore restituito.
 Per la prova bastano il workflow e il secret. L'esito positivo conferma che
 GitHub Actions può autenticarsi con l'abbonamento Claude.
@@ -63,27 +66,57 @@ GitHub Actions può autenticarsi con l'abbonamento Claude.
    applica `fase:implementazione` solo dopo l'approvazione. Se hai modificato
    l'issue o nel frattempo è avanzato `main`, rigenera il piano prima di
    approvarlo. Mantieni `fase:piano` sull'issue.
-4. Dopo la creazione della PR in bozza, applica `fase:test` **all'issue**.
+4. Dopo la creazione della PR in bozza, applica `fase:test` **alla PR**.
    Il tester riceve le specifiche e le firme pubbliche dal commit del piano,
    genera solo nuovi file di test e lavora senza accedere al branch
-   dell'implementazione.
-5. Quando il commit dei test è visibile, rendi la PR pronta per la revisione e
-   applica `fase:revisione` **all'issue**. Leggi il commento di Claude sulla PR,
-   verifica il check `build` e chiedi l'approvazione di un altro membro del
-   team prima del merge. Autorizza l'esecuzione di Actions se GitHub lo richiede.
+   dell'implementazione. Un job separato esegue la verifica sul codice e
+   segnala l'esito insieme ai test frame nella PR.
+5. Quando il commit dei test è visibile, rendi la PR pronta per la revisione.
+   **CI** e **Agente revisore** si avviano da `ready_for_review`. Leggi il
+   commento di Claude, verifica il check `build` e ottieni l'approvazione di un
+   code owner diverso dall'autore prima del merge. Autorizza l'esecuzione di
+   Actions se GitHub lo richiede.
 
-Aspetta che un run termini prima di applicare la label successiva. Per ripetere
-una fase dopo una correzione, rimuovi e riapplica la sua label. Se il branch
+Puoi chiedere chiarimenti con `@claude` in un commento all'issue. Su una PR
+interna al repository puoi chiedere a Claude di spiegare o correggere una
+modifica. Il workflow accetta le menzioni da membri con accesso Write.
+
+Aspetta che un run termini prima di avviare la fase successiva. Dopo una
+correzione, riapplica la label della fase o riporta la PR in bozza e rendila
+di nuovo pronta per ripetere la revisione. Se il branch
 `agent/issue-N` è stato pubblicato ma GitHub ha bloccato la creazione della PR,
 verifica il branch e apri manualmente una PR in bozza verso `main` con
 `Closes #N`. Poi prosegui con i test.
 
-Il workflow usa le label dell'issue anche per test e revisione, così i job con
-OAuth partono dalla configurazione su `main`; il diff della PR è letto durante
-la revisione e la CI rimane un workflow separato. Quando la CI applicativa è
-attiva, rendi obbligatorio `build` nel ruleset `protect-main`. Aggiungi
-`CODEOWNERS` e il relativo requisito dopo aver identificato i responsabili
-GitHub del team.
+I workflow sono `piano.yml`, `implementa.yml`, `test.yml`, `revisione.yml`,
+`agente.yml` e `ci.yml`. Le quattro fasi riusano i job di
+`esegui-fase.yml`. Il tester e il revisore usano le istruzioni in
+`.claude/agents/`. Le fasi dichiarano il timeout e il numero massimo di giri.
+Imposta nel piano del task la soglia di tentativi oltre cui passa a una persona.
+Con OAuth il consumo ricade sull'abbonamento associato al token.
+
+## Protezioni e tracciabilità
+
+Il ruleset `protect-main` deve richiedere il check `build` e la revisione dei
+code owner. `.github/CODEOWNERS` usa gli amministratori della repo come
+responsabili iniziali. Il template PR registra issue, piano, approvatore,
+versione degli artefatti, frame, tentativi, aggiornamenti ai modelli ed esito.
+Per ogni caso d'uso, registra la corrispondenza tra sequence diagram, classi,
+test frame, test ed esito. La PR deve essere leggibile e spiegabile dall'autore.
+
+## GitHub Projects
+
+Collega alla repo una board **MindCompanion Workflow** con queste opzioni in
+**Status**: Da pianificare, Piano, Implementazione, Test, Revisione e Fatto.
+Aggiungi i campi **Caso d'uso** (testo), **Agente usato** (scelta singola),
+**Tentativi** (numero) e **Revisore** (testo). In **Workflows**, configura
+**Auto-add to project** per questa repo con filtro `label:task-agente`. Configura
+**Item closed** e **Pull request merged** per impostare lo stato **Fatto**.
+
+Salva le viste del PM con i filtri `is:issue is:open label:task-agente
+-label:fase:piano`, `is:issue is:open label:fase:piano
+-label:fase:implementazione`, `is:pr is:open draft:true`,
+`is:pr is:open draft:false review:required` e `is:pr is:open status:failure`.
 
 ## Seconda revisione con Copilot
 

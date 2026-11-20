@@ -1,20 +1,27 @@
 ## Caso d'uso e issue
 
-Closes #
+<!-- agente:caso -->
 
-## Piano e specifiche
+## Artefatti usati
 
-- Link al piano approvato
-- Percorsi e versione dei modelli usati
+<!-- agente:artefatti -->
 
-## Verifica
+## Agenti e modalità
 
-- Test frame coperti
-- Risultato di build e test
+<!-- agente:modalita -->
 
-## Revisione
+- Tentativi prima del verde
+- Tentativi interrotti
 
-- [ ] Ho letto le modifiche e posso spiegarle
-- [ ] Ho confrontato l'implementazione con le specifiche
+## Modifiche ai modelli
 
-Per una seconda revisione tecnica, richiedi **Copilot** dal menu **Reviewers**.
+<!-- Indica gli artefatti modificati e la decisione che li ha motivati. -->
+
+## Verifica e revisione
+
+<!-- agente:verifica -->
+
+- Test frame coperti ed esito di build e test
+- Revisore umano
+- [ ] Ho letto le modifiche e posso spiegare il codice
+- [ ] Ho riscontrato la copertura dei test frame nelle specifiche.

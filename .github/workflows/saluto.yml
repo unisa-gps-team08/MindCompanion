@@ -1,0 +1,25 @@
+name: Saluto
+
+on:
+  issues:
+    types: [labeled]
+
+permissions: {}
+
+jobs:
+  saluta:
+    if: >-
+      github.repository == 'unisa-gps-team08/MindCompanion' &&
+      github.event.sender.type == 'User' &&
+      github.event.label.name == 'prova'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      issues: write
+    steps:
+      - name: Pubblica il saluto
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NUM: ${{ github.event.issue.number }}
+        run: gh issue comment "$NUM" --body 'Ciao!'

@@ -1,71 +1,27 @@
-name: Workflow agentico
+name: Esegui fase del task
 
 on:
-  issues:
-    types: [labeled]
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      phase:
+        type: string
+        required: true
+      timeout:
+        type: number
+        required: true
+      turns:
+        type: number
+        required: true
 
 permissions: {}
 
-concurrency:
-  group: ${{ github.event_name == 'issues' && format('agent-issue-{0}', github.event.issue.number) || 'agent-oauth-check' }}
-  cancel-in-progress: false
+env:
+  AGENT_PHASE: ${{ inputs.phase }}
 
 jobs:
-  oauth-check:
-    name: Verifica accesso OAuth
-    if: >-
-      github.event_name == 'workflow_dispatch' &&
-      github.repository == 'unisa-gps-team08/MindCompanion' &&
-      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment: MindCompanion Workflow
-    permissions:
-      contents: read
-    steps:
-      - name: Controlla che il secret sia configurato
-        env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-        run: |
-          if [[ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]]; then
-            echo '::error::Configura CLAUDE_CODE_OAUTH_TOKEN nell’environment MindCompanion Workflow.'
-            exit 1
-          fi
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Esegui una richiesta minima con Claude Code
-        id: verify
-        uses: anthropics/claude-code-action@c84e279f859e2591391e95bd309286eb111c345f # v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ github.token }}
-          show_full_output: false
-          prompt: Imposta il valore del campo marker su OAUTH_OK.
-          claude_args: >-
-            --restricted --strict-mcp-config --disallowedTools 'Read,mcp__*'
-            --tools Read --max-turns 2
-            --json-schema '{"type":"object","properties":{"marker":{"type":"string","enum":["OAUTH_OK"]}},"required":["marker"],"additionalProperties":false}'
-      - name: Verifica la risposta
-        env:
-          CLAUDE_RESULT: ${{ steps.verify.outputs.structured_output }}
-        run: |
-          if ! jq -e '.marker == "OAUTH_OK"' <<<"$CLAUDE_RESULT" >/dev/null; then
-            echo '::error::Claude non ha restituito il codice di verifica atteso.'
-            exit 1
-          fi
-          echo 'Accesso OAuth a Claude Code verificato.' >> "$GITHUB_STEP_SUMMARY"
-
   claude:
-    if: >-
-      github.event_name == 'issues' &&
-      github.repository == 'unisa-gps-team08/MindCompanion' &&
-      github.event.sender.type == 'User' &&
-      contains(github.event.issue.labels.*.name, 'task-agente') &&
-      contains(fromJSON('["fase:piano","fase:implementazione","fase:test","fase:revisione"]'), github.event.label.name)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: ${{ inputs.timeout }}
     environment: MindCompanion Workflow
     permissions:
       contents: read
@@ -78,6 +34,7 @@ jobs:
       - name: Leggi la versione approvata del repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           persist-credentials: false
 
       - name: Prepara specifiche e controlli di fase
@@ -103,7 +60,7 @@ jobs:
           claude_args: >-
             --restricted --strict-mcp-config --disallowedTools 'mcp__*'
             --tools '${{ steps.prepare.outputs.tools }}'
-            --permission-mode acceptEdits --max-turns 24
+            --permission-mode acceptEdits --max-turns ${{ inputs.turns }}
             --json-schema '{"type":"object","properties":{"report":{"type":"string"}},"required":["report"],"additionalProperties":false}'
 
       - name: Prepara un risultato da pubblicare
@@ -132,6 +89,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           persist-credentials: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -143,9 +101,35 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python3 .github/scripts/agent_workflow.py publish
 
-  changes:
-    if: needs.claude.outputs.phase == 'implementazione' || needs.claude.outputs.phase == 'test'
+  verifica-modifiche:
+    if: inputs.phase == 'implementazione' || inputs.phase == 'test'
     needs: claude
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      build: ${{ steps.build.outcome }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.claude.outputs.artifact }}
+          path: ${{ runner.temp }}/agent-result/
+          merge-multiple: true
+      - name: Applica le modifiche in un checkout di verifica
+        run: python3 .github/scripts/agent_workflow.py verify
+      - name: Esegui build e test applicativi
+        id: build
+        continue-on-error: ${{ inputs.phase == 'test' }}
+        run: bash .github/scripts/verify-project
+
+  changes:
+    if: inputs.phase == 'implementazione' || inputs.phase == 'test'
+    needs: [claude, verifica-modifiche]
     runs-on: ubuntu-latest
     timeout-minutes: 8
     permissions:
@@ -155,6 +139,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           persist-credentials: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -164,4 +149,5 @@ jobs:
       - name: Verifica e pubblica sul branch del task
         env:
           GH_TOKEN: ${{ github.token }}
+          VERIFY_OUTCOME: ${{ needs.verifica-modifiche.outputs.build }}
         run: python3 .github/scripts/agent_workflow.py publish

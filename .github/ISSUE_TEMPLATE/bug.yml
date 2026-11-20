@@ -1,0 +1,17 @@
+name: Segnalazione di un bug
+description: Segnala un problema osservato in MindCompanion
+labels: [bug]
+body:
+  - type: textarea
+    id: riproduzione
+    attributes:
+      label: Come riprodurre il problema
+    validations:
+      required: true
+  - type: textarea
+    id: esito
+    attributes:
+      label: Esito atteso e osservato
+      description: Usa dati fittizi per descrivere il problema.
+    validations:
+      required: true

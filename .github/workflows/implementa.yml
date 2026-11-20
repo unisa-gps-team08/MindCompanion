@@ -1,0 +1,26 @@
+name: Agente implementatore
+
+on:
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: ${{ format('agent/issue-{0}', github.event.issue.number) }}
+  cancel-in-progress: false
+
+jobs:
+  implementa:
+    if: >-
+      github.repository == 'unisa-gps-team08/MindCompanion' &&
+      github.event.sender.type == 'User' &&
+      contains(github.event.issue.labels.*.name, 'task-agente') &&
+      github.event.label.name == 'fase:implementazione'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    uses: ./.github/workflows/esegui-fase.yml
+    with:
+      phase: implementazione
+      timeout: 30
+      turns: 40

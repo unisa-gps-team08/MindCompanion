@@ -9,6 +9,8 @@ versionati in `docs/` come specifica per ogni task.
 - Deriva gli esiti attesi dei test dalle specifiche e dai test frame. Usa dati fittizi.
 - Segui l'architettura approvata dal team. Le modifiche a dipendenze, configurazione
   degli agenti e workflow richiedono una PR separata del team.
+- Se una decisione approvata cambia un modello, il team aggiorna il modello
+  insieme al codice nella relativa PR.
 - La CI esegue i comandi del progetto tramite `.github/scripts/verify-project`
   quando il team ha configurato lo stack.
 - Prima del merge servono test eseguiti e revisione umana della PR.

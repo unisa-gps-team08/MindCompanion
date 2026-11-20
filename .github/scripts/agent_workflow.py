@@ -15,9 +15,12 @@ from urllib.request import Request, urlopen
 EVENT = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
 REPOSITORY = os.environ["GITHUB_REPOSITORY"]
 API = f'{os.environ["GITHUB_API_URL"]}/repos/{REPOSITORY}'
-NUMBER = int(EVENT["issue"]["number"])
-PHASE = EVENT["label"]["name"].removeprefix("fase:")
-BRANCH = f"agent/issue-{NUMBER}"
+PHASE = os.environ["AGENT_PHASE"]
+PR_EVENT = EVENT.get("pull_request")
+TASK_BRANCH = re.fullmatch(r"agent/issue-([1-9][0-9]*)", PR_EVENT["head"]["ref"]) if PR_EVENT else None
+NUMBER = int(TASK_BRANCH[1]) if TASK_BRANCH else EVENT.get("issue", {}).get("number")
+BRANCH = PR_EVENT["head"]["ref"] if PR_EVENT else f"agent/issue-{NUMBER}"
+BASE_SHA = PR_EVENT["base"]["sha"] if PR_EVENT else os.environ["GITHUB_SHA"]
 DEFAULT_BRANCH = EVENT["repository"]["default_branch"]
 ACTOR = os.environ["GITHUB_ACTOR"]
 INPUTS = Path(".agent-input")
@@ -48,19 +51,8 @@ INSTRUCTIONS = {
         "Usa solo le dipendenze presenti. Lascia i test al tester. "
         "Nel report descrivi le modifiche e i controlli da eseguire in CI."
     ),
-    "test": (
-        "Scrivi solo nuovi file di test entro l'ambito dei test. "
-        "Deriva gli esiti attesi dal caso d'uso e dai test frame e usa le interfacce "
-        "pubbliche indicate nella specifica. Collega i test agli ID dei frame. "
-        "L'implementazione della PR è fuori dal tuo contesto."
-    ),
-    "revisione": (
-        "Confronta .agent-input/review.diff con le specifiche e il piano approvato. "
-        "Verifica flussi, responsabilità, copertura dei test frame e ambito. "
-        "Per ogni rilievo indica file, riga, comportamento atteso e osservato. "
-        "Chiudi con una sintesi per il revisore umano."
-    ),
 }
+ROLE_FILES = {"test": "tester", "revisione": "revisore"}
 
 
 def require(condition, message):
@@ -90,17 +82,27 @@ def api(path, *, body=None, accept="application/vnd.github+json"):
     return json.loads(data) if accept.endswith("+json") else data
 
 
+def check_write_access(login):
+    require(re.fullmatch(r"[A-Za-z0-9-]+", login), "Serve un account GitHub umano.")
+    permission = api(f"/collaborators/{login}/permission")["permission"]
+    require(permission in {"admin", "write"}, f"Accesso Write richiesto per {login}.")
+
+
 def check_issue():
+    check_write_access(ACTOR)
+    if NUMBER is None:
+        require(PHASE == "revisione" and PR_EVENT, "La PR deve essere collegata a un task agente.")
+        return None
     issue = api(f"/issues/{NUMBER}")
     labels = {label["name"] for label in issue["labels"]}
     require(issue["state"] == "open", "L'issue deve essere aperta.")
-    require({"task-agente", f"fase:{PHASE}"} <= labels, "Le label della fase sono cambiate.")
-    require(issue_fingerprint(issue) == issue_fingerprint(EVENT["issue"]),
-            "L'issue è cambiata dopo l'avvio. Controllala e riapplica la label.")
-    for login in {ACTOR, issue["user"]["login"]}:
-        require(re.fullmatch(r"[A-Za-z0-9-]+", login), "Serve un account GitHub umano.")
-        permission = api(f"/collaborators/{login}/permission")["permission"]
-        require(permission in {"admin", "write"}, f"Accesso Write richiesto per {login}.")
+    issue_phase = "implementazione" if PR_EVENT else PHASE
+    require({"task-agente", f"fase:{issue_phase}"} <= labels, "Le label dell'issue sono cambiate.")
+    if PR_EVENT is None:
+        require(issue_fingerprint(issue) == issue_fingerprint(EVENT["issue"]),
+                "L'issue è cambiata dopo l'avvio. Controllala e riapplica la label.")
+    if issue["user"]["login"] != ACTOR:
+        check_write_access(issue["user"]["login"])
     return issue
 
 
@@ -167,14 +169,14 @@ def approved_plan(issue, base):
     require(marker[1] == issue_fingerprint(issue) and marker[2] == base,
             "Il piano non corrisponde all'issue e al commit di riferimento. Rigenera il piano.")
     require(comment["body"][marker.end():].strip(), "Il piano pubblicato è vuoto.")
-    return comment["body"][marker.end():].strip()
+    link = f'{os.environ["GITHUB_SERVER_URL"]}/{REPOSITORY}/issues/{NUMBER}#issuecomment-{comment["id"]}'
+    return comment["body"][marker.end():].strip(), link
 
 
 def draft_or_review_pr():
-    filters = urlencode({"state": "open", "head": f"{REPOSITORY.split('/')[0]}:{BRANCH}"})
-    pulls = api(f"/pulls?{filters}")
-    require(len(pulls) <= 1, "Trovate più PR aperte per il branch del task.")
     if PHASE == "implementazione":
+        filters = urlencode({"state": "open", "head": f"{REPOSITORY.split('/')[0]}:{BRANCH}"})
+        pulls = api(f"/pulls?{filters}")
         require(not pulls, "Esiste già una PR per il task. Controllala prima di proseguire.")
         try:
             api(f"/git/ref/heads/{BRANCH}")
@@ -184,14 +186,19 @@ def draft_or_review_pr():
         else:
             raise ValueError(f"Esiste già {BRANCH}. Controlla il branch e apri una PR in bozza.")
         return None
-    require(pulls, "Non esiste una PR aperta per il branch del task.")
-    pr = pulls[0]
-    require(pr["head"]["repo"]["full_name"] == REPOSITORY
+    require(PR_EVENT is not None, "La fase deve partire dalla pull request.")
+    pr = api(f'/pulls/{PR_EVENT["number"]}')
+    require(pr["state"] == "open"
+            and (pr["head"]["repo"] or {}).get("full_name") == REPOSITORY
             and pr["base"]["ref"] == DEFAULT_BRANCH
             and pr["head"]["ref"] == BRANCH, "La PR non corrisponde al task.")
     require(pr["draft"] == (PHASE == "test"),
             "Mantieni la PR in bozza per i test e rendila pronta prima della revisione.")
-    require(SHA.fullmatch(pr["head"]["sha"]), "Commit della PR non valido.")
+    require(SHA.fullmatch(pr["head"]["sha"]) and pr["head"]["sha"] == PR_EVENT["head"]["sha"],
+            "La PR è cambiata dopo l'avvio. Riavvia la fase dalla PR aggiornata.")
+    if PHASE == "test":
+        require(TASK_BRANCH and any(label["name"] == "fase:test" for label in pr["labels"]),
+                "Aggiungi fase:test alla PR in bozza del task.")
     return pr
 
 
@@ -207,34 +214,38 @@ def read_state():
 
 
 def prepare():
-    require(PHASE in INSTRUCTIONS, "Fase sconosciuta.")
+    require(PHASE in INSTRUCTIONS or PHASE in ROLE_FILES, "Fase sconosciuta.")
     issue = check_issue()
-    body = issue["body"] or ""
-    base = os.environ["GITHUB_SHA"]
+    base = BASE_SHA
     require(git("rev-parse", "HEAD").strip() == base, "Checkout del commit di riferimento fallito.")
     pr = None if PHASE == "piano" else draft_or_review_pr()
-    if pr:
+    reference = base
+    if pr and issue:
         # Implementation is a single commit from the approved base; test commits
         # may follow it. The compare API is queried without fetching PR contents.
         comparison = api(f'/compare/{base}...{pr["head"]["sha"]}')
         reference = comparison["merge_base_commit"]["sha"]
         require(comparison["status"] == "ahead" or comparison["status"] == "diverged",
                 "Non ci sono modifiche da verificare nella PR.")
-    else:
-        reference = base
     require(SHA.fullmatch(reference), "Commit di riferimento non valido.")
-    plan = "" if PHASE == "piano" else approved_plan(issue, reference)
+    plan, plan_link = ("", "")
+    if issue and PHASE != "piano":
+        plan, plan_link = approved_plan(issue, reference)
     if reference != base:
         # Only fetch the common ancestor, never the implementation branch.
         git("fetch", "--depth=1", "--no-tags", "origin", reference)
         git("checkout", "--detach", reference)
     if PHASE == "test":
-        git("sparse-checkout", "set", "docs", ".github/scripts")
-    specs = task_paths(body, "Specifiche", source=True)
-    contracts = task_paths(body, "Interfacce e test frame", source=True)
-    code = task_paths(body, "Ambito del codice")
-    tests = task_paths(body, "Ambito dei test")
-    parse_section(body, "Criteri di accettazione")
+        git("sparse-checkout", "set", "docs", ".github/scripts", ".claude/agents")
+    specs, contracts, code, tests = [], [], [], []
+    if issue:
+        body = issue["body"] or ""
+        specs = task_paths(body, "Specifiche", source=True)
+        contracts = task_paths(body, "Interfacce e test frame", source=True)
+        code = task_paths(body, "Ambito del codice")
+        tests = task_paths(body, "Ambito dei test")
+        acceptance = parse_section(body, "Criteri di accettazione")
+        use_case = parse_section(body, "Identificativo del caso d'uso")
     if PHASE == "implementazione":
         require("fase:piano" in {label["name"] for label in issue["labels"]},
                 "Mantieni la label fase:piano quando approvi il piano.")
@@ -250,21 +261,32 @@ def prepare():
         details = "\n".join([
             "Caso d'uso e specifiche", *specs, "Interfacce e test frame", *contracts,
             "Ambito dei test", *tests,
-            "Criteri di accettazione", parse_section(body, "Criteri di accettazione")
+            "Criteri di accettazione", acceptance
         ])
-    else:
+    elif issue:
         details = f'{issue["title"]}\n\n{body}\n\n{plan}'
-    task = f"# Fase {PHASE}\n\n{INSTRUCTIONS[PHASE]}\n\n## Contesto\n\n{details}\n"
+    else:
+        details = f'{pr["title"]}\n\n{pr["body"] or ""}'
+    if PHASE in ROLE_FILES:
+        role_file = Path(".claude/agents") / f"{ROLE_FILES[PHASE]}.md"
+        instructions = role_file.read_text(encoding="utf-8").split("---", 2)[2].strip()
+    else:
+        instructions = INSTRUCTIONS[PHASE]
+    task = f"# Fase {PHASE}\n\n{instructions}\n\n## Contesto\n\n{details}\n"
     (INPUTS / "task.md").write_text(task, encoding="utf-8")
     write_state({
-        "phase": PHASE, "issue_number": NUMBER, "fingerprint": issue_fingerprint(issue),
+        "phase": PHASE, "issue_number": NUMBER, "fingerprint": issue_fingerprint(issue) if issue else None,
         "base": base, "pr": pr["number"] if pr else None,
-        "head": pr["head"]["sha"] if pr else None, "title": issue["title"],
+        "head": pr["head"]["sha"] if pr else None, "title": (issue or pr)["title"],
         "code": code, "tests": tests,
+        "use_case": use_case if issue else "", "artifacts": list(dict.fromkeys([*specs, *contracts])),
+        "plan_link": plan_link, "spec_revision": reference,
     })
     tools = "Read,Glob,Grep"
-    if PHASE in {"implementazione", "test"}:
+    if PHASE == "implementazione":
         tools += ",Write,Edit"
+    elif PHASE == "test":
+        tools += ",Write"
     with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
         print(f"phase={PHASE}\ntools={tools}", file=output)
 
@@ -325,7 +347,7 @@ def comment_report(state, report):
     else:
         pr = draft_or_review_pr()
         require(pr["number"] == state["pr"] and pr["head"]["sha"] == state["head"],
-                "La PR è cambiata. Riapplica fase:revisione sul commit aggiornato.")
+                "La PR è cambiata. Segna di nuovo la PR pronta per revisione.")
         body = f'## Revisione del commit `{state["head"][:12]}`\n\n{report}'
         endpoint = f'/issues/{state["pr"]}/comments'
     api(endpoint, body={"body": body})
@@ -337,7 +359,7 @@ def explain_manual_pull_request():
     instructions = (
         f"## Branch pronto per la pull request\n\n{action} e aggiungi "
         f"`Closes #{NUMBER}` alla descrizione. Dopo averla creata, applica "
-        "`fase:test` all'issue."
+        "`fase:test` alla PR."
     )
     with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a", encoding="utf-8") as summary:
         print(instructions, file=summary)
@@ -354,27 +376,59 @@ def pull_request_creation_disabled(error):
             and "github actions is not permitted to create or approve pull requests" in message.lower())
 
 
-def publish_changes(state, report):
-    git("config", "user.name", "github-actions[bot]")
-    git("config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
+def apply_patch(state):
     patch = RESULT / "changes.patch"
     require(0 < patch.stat().st_size <= MAX_PATCH_BYTES, "Dimensione della patch non valida.")
     if PHASE == "test":
-        pr = draft_or_review_pr()
-        require(pr["number"] == state["pr"] and pr["head"]["sha"] == state["head"],
-                "La PR è cambiata durante il lavoro. Riapplica fase:test.")
+        require(SHA.fullmatch(state["head"]), "Commit della PR non valido.")
         git("fetch", "--no-tags", "origin", f"refs/heads/{BRANCH}")
         require(git("rev-parse", "FETCH_HEAD").strip() == state["head"],
                 "Il commit remoto della PR è cambiato.")
         git("checkout", "--detach", state["head"])
     else:
-        draft_or_review_pr()
         require(git("rev-parse", "HEAD").strip() == state["base"],
                 "Checkout del commit del piano fallito.")
 
     git("apply", "--index", "--check", str(patch))
     git("apply", "--index", str(patch))
     check_patch_scope(state)
+
+
+def verify():
+    apply_patch(read_state())
+    require(Path(".github/scripts/verify-project").is_file(),
+            "Configura .github/scripts/verify-project per eseguire build e test.")
+
+
+def pull_request_body(state, report):
+    template = Path(".github/pull_request_template.md").read_text(encoding="utf-8")
+    artifacts = "\n".join(f"- `{path}`" for path in state["artifacts"])
+    parts = {
+        "caso": f'{state["use_case"]}\n\nCloses #{NUMBER}',
+        "artefatti": f'Commit di riferimento `{state["spec_revision"][:12]}`\n\n{artifacts}',
+        "modalita": f'- Implementazione Claude Code. [Piano]({state["plan_link"]}) approvato da @{ACTOR}.\n'
+                    "- Test in una sessione separata con gli artefatti della specifica.",
+        "verifica": (
+            "- Build e test preliminari superati.\n"
+            "- Applica `fase:test` a questa PR mentre è in bozza.\n"
+            "- Per una seconda revisione tecnica puoi richiedere Copilot da **Reviewers**."
+        ),
+    }
+    for key, value in parts.items():
+        placeholder = f"<!-- agente:{key} -->"
+        require(placeholder in template, f"Campo mancante nel template PR: {key}")
+        template = template.replace(placeholder, value)
+    return f"{template.rstrip()}\n\n## Implementazione\n\n{report}"
+
+
+def publish_changes(state, report):
+    pr = draft_or_review_pr()
+    if PHASE == "test":
+        require(pr["number"] == state["pr"] and pr["head"]["sha"] == state["head"],
+                "La PR è cambiata durante il lavoro. Riapplica fase:test.")
+    git("config", "user.name", "github-actions[bot]")
+    git("config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
+    apply_patch(state)
     git("commit", "-m", f"Agent: {PHASE} per issue #{NUMBER}")
     if PHASE == "implementazione":
         # An empty expected ref creates the branch only if it does not exist.
@@ -387,13 +441,7 @@ def publish_changes(state, report):
         try:
             pr = api("/pulls", body={
                 "title": state["title"], "head": BRANCH, "base": DEFAULT_BRANCH, "draft": True,
-                "body": (
-                    f"Closes #{NUMBER}\n\n## Implementazione\n\n{report}\n\n"
-                    "Il piano approvato e gli artefatti sono nell'issue. Applica "
-                    "`fase:test` all'issue mentre la PR è in bozza. Quando la PR è "
-                    "pronta, puoi richiedere **Copilot** dal menu **Reviewers** "
-                    "per una seconda revisione tecnica."
-                ),
+                "body": pull_request_body(state, report),
             })
         except HTTPError as error:
             if pull_request_creation_disabled(error):
@@ -403,12 +451,23 @@ def publish_changes(state, report):
                   f"{DEFAULT_BRANCH} e aggiungi Closes #{NUMBER}.", file=sys.stderr)
             raise
         print(f'PR in bozza #{pr["number"]}.')
+    else:
+        outcome = os.environ["VERIFY_OUTCOME"]
+        run_url = f'{os.environ["GITHUB_SERVER_URL"]}/{REPOSITORY}/actions/runs/{os.environ["GITHUB_RUN_ID"]}'
+        status = "superata" if outcome == "success" else "fallita"
+        api(f'/issues/{pr["number"]}/comments', body={
+            "body": (
+                f"## Test dei frame\n\n{report}\n\n"
+                f"Verifica applicativa **{status}**. [Log di build e test]({run_url})."
+            )
+        })
 
 
 def publish():
     state = read_state()
     issue = check_issue()
-    require(issue_fingerprint(issue) == state["fingerprint"], "La specifica è cambiata.")
+    if issue is not None:
+        require(issue_fingerprint(issue) == state["fingerprint"], "La specifica è cambiata.")
     report = (RESULT / "report.md").read_text(encoding="utf-8")
     if PHASE in {"piano", "revisione"}:
         comment_report(state, report)
@@ -417,7 +476,7 @@ def publish():
 
 
 if __name__ == "__main__":
-    commands = {"prepare": prepare, "package": package, "publish": publish}
+    commands = {"prepare": prepare, "package": package, "verify": verify, "publish": publish}
     try:
         commands[sys.argv[1]]()
     except (ValueError, HTTPError, subprocess.CalledProcessError) as error:
