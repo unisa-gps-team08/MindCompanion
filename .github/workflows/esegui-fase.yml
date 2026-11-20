@@ -25,6 +25,7 @@ jobs:
     environment: MindCompanion Workflow
     permissions:
       contents: read
+      id-token: write
       issues: read
       pull-requests: read
     outputs:
@@ -50,7 +51,10 @@ jobs:
         uses: anthropics/claude-code-action@c84e279f859e2591391e95bd309286eb111c345f # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ github.token }}
+          additional_permissions: |
+            contents: read
+            issues: read
+            pull_requests: read
           show_full_output: false
           prompt: |
             Leggi .agent-input/task.md e AGENTS.md. Esegui il ruolo indicato

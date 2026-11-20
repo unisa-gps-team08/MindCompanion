@@ -34,10 +34,12 @@ aggiungere una verifica tecnica alla revisione delle PR.
    gh label create prova --color B60205
    ```
 
-La configurazione passa il `GITHUB_TOKEN` in sola lettura alla Claude Code
-Action per operare su GitHub. L'autenticazione del modello usa il secret OAuth.
-I job di pubblicazione usano permessi GitHub propri. L'action di Anthropic
-[supporta il token GitHub esplicito](https://code.claude.com/docs/en/github-actions#action-parameters).
+La Claude Code Action ottiene tramite OIDC un token temporaneo della GitHub App
+Claude, installata con accesso al solo repository MindCompanion. Il secret OAuth
+autentica le richieste al modello. Le quattro fasi chiedono un token in lettura
+per Claude. I job di pubblicazione usano il proprio `GITHUB_TOKEN`. Il workflow
+`@claude` usa l'identità `claude[bot]` per rispondere su GitHub.
+[Configurazione dell'action di Anthropic](https://code.claude.com/docs/en/github-actions).
 
 ## Prove di configurazione e OAuth
 
@@ -46,9 +48,9 @@ issue di prova. Il workflow **Saluto** deve rispondere «Ciao!».
 
 Dopo il merge e il salvataggio del secret, apri **Actions → Verifica OAuth di
 Claude → Run workflow**, seleziona `main` e avvia il run. Il job **Verifica accesso
-OAuth** invia a Claude una richiesta minima e controlla il valore restituito.
-Per la prova bastano il workflow e il secret. L'esito positivo conferma che
-GitHub Actions può autenticarsi con l'abbonamento Claude.
+OAuth** scambia l'identità OIDC del runner con il token della GitHub App e
+verifica che Claude risponda a una richiesta minima. L'esito positivo conferma
+che funzionano sia l'installazione dell'app sia l'accesso con l'abbonamento.
 
 ## Primo caso d'uso
 

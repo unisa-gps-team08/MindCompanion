@@ -20,6 +20,7 @@ jobs:
       startsWith(github.event.pull_request.head.ref, 'agent/issue-')
     permissions:
       contents: write
+      id-token: write
       issues: write
       pull-requests: write
     uses: ./.github/workflows/esegui-fase.yml

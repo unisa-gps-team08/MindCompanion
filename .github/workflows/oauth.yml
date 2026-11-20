@@ -17,6 +17,7 @@ jobs:
     environment: MindCompanion Workflow
     permissions:
       contents: read
+      id-token: write
     steps:
       - name: Controlla che il secret sia configurato
         env:
@@ -34,7 +35,10 @@ jobs:
         uses: anthropics/claude-code-action@c84e279f859e2591391e95bd309286eb111c345f # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ github.token }}
+          additional_permissions: |
+            contents: read
+            issues: read
+            pull_requests: read
           show_full_output: false
           prompt: Imposta il valore del campo marker su OAUTH_OK.
           claude_args: >-
@@ -49,4 +53,4 @@ jobs:
             echo '::error::Claude non ha restituito il codice di verifica atteso.'
             exit 1
           fi
-          echo 'Accesso OAuth a Claude Code verificato.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Accesso OAuth a Claude Code e autenticazione OIDC della GitHub App verificati.' >> "$GITHUB_STEP_SUMMARY"
