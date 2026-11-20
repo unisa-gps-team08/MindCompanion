@@ -36,6 +36,14 @@ Action per operare su GitHub. L'autenticazione del modello usa il secret OAuth.
 I job di pubblicazione usano permessi GitHub propri. L'action di Anthropic
 [supporta il token GitHub esplicito](https://code.claude.com/docs/en/github-actions#action-parameters).
 
+## Verifica di OAuth
+
+Dopo il merge e il salvataggio del secret, apri **Actions → Workflow agentico →
+Run workflow**, seleziona `main` e avvia il run. Il job **Verifica accesso
+OAuth** invia a Claude una richiesta minima e controlla il valore restituito.
+Per la prova bastano il workflow e il secret. L'esito positivo conferma che
+GitHub Actions può autenticarsi con l'abbonamento Claude.
+
 ## Primo caso d'uso
 
 1. Integra in `docs/` gli artefatti approvati che il team può pubblicare:
