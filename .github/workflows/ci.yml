@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Controlla le modifiche alla configurazione
+        run: |
+          git diff --check HEAD^ HEAD
+          if [[ -f .github/scripts/agent_workflow.py ]]; then
+            python3 -m py_compile .github/scripts/agent_workflow.py
+          fi
+      - name: Esegui build e test del progetto
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          if [[ -f .github/scripts/verify-project ]]; then
+            bash .github/scripts/verify-project
+          elif [[ "$HEAD_BRANCH" == agent/issue-* ]]; then
+            echo '::error::Configura .github/scripts/verify-project prima di usare il workflow per il codice applicativo.'
+            exit 1
+          else
+            echo 'Sono stati eseguiti solo i controlli di configurazione. La build applicativa deve ancora essere collegata.'
+          fi
