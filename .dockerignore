@@ -1,0 +1,15 @@
+.git
+.github
+.claude
+docs
+node_modules
+.next
+out
+build
+coverage
+.env*
+.npmrc
+*.pem
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*

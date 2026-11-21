@@ -1,0 +1,64 @@
+services:
+  web:
+    build: .
+    init: true
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/mindcompanion
+      NEXT_TELEMETRY_DISABLED: "1"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - default
+      - database
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          fetch('http://127.0.0.1:3000/api/health', { signal: AbortSignal.timeout(12000) })
+            .then(response => process.exit(response.ok ? 0 : 1))
+            .catch(() => process.exit(1))
+      interval: 10s
+      timeout: 15s
+      start_period: 30s
+      retries: 5
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - Dockerfile
+            - compose.yaml
+            - package.json
+            - package-lock.json
+        - action: rebuild
+          path: Dockerfile
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: package-lock.json
+
+  mongodb:
+    image: mongo:8.0
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - database
+    healthcheck:
+      test: ["CMD", "mongosh", "mongodb://127.0.0.1:27017/admin?serverSelectionTimeoutMS=3000", "--quiet", "--norc", "--eval", "quit(db.adminCommand({ping: 1}).ok === 1 ? 0 : 1)"]
+      interval: 10s
+      timeout: 15s
+      start_period: 30s
+      retries: 10
+
+networks:
+  database:
+    internal: true
+
+volumes:
+  mongodb-data:
