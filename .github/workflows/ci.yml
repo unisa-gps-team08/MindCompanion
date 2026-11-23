@@ -12,6 +12,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PNPM_VERSION: 10.33.2
+
 jobs:
   build:
     name: build
@@ -67,15 +70,17 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
-      - name: Controlla le vulnerabilità delle dipendenze npm
-        run: npm audit --package-lock-only --audit-level=high
+      - name: Installa pnpm
+        run: npm install --global --ignore-scripts "pnpm@$PNPM_VERSION"
+      - name: Controlla le vulnerabilità delle dipendenze
+        run: pnpm audit --audit-level high
       - name: Esegui la build Next.js
         run: bash .github/scripts/verify-project
       - name: Verifica Next.js e MongoDB
         env:
           MONGODB_URI: mongodb://127.0.0.1:${{ job.services.mongodb.ports[27017] }}/mindcompanion_ci
           NEXT_TELEMETRY_DISABLED: '1'
-        run: npm run test:integration
+        run: pnpm test:integration
       - name: Costruisci l'immagine Docker web
         run: docker build --tag mindcompanion-web:ci .
 
@@ -111,8 +116,10 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
+      - name: Installa pnpm
+        run: npm install --global --ignore-scripts "pnpm@$PNPM_VERSION"
       - name: Installa le dipendenze per l'analisi TypeScript
-        run: npm ci --ignore-scripts --no-audit
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Analizza il progetto su SonarCloud
         uses: SonarSource/sonarqube-scan-action@59202af334b4ba7b5db01b701b8e79f8b3bef0f4 # v8.5.0
         env:
@@ -143,5 +150,7 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
-      - name: Controlla le vulnerabilità delle dipendenze npm
-        run: npm audit --package-lock-only --audit-level=high
+      - name: Installa pnpm
+        run: npm install --global --ignore-scripts "pnpm@$PNPM_VERSION"
+      - name: Controlla le vulnerabilità delle dipendenze
+        run: pnpm audit --audit-level high

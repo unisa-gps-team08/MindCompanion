@@ -38,14 +38,14 @@ Avvia l'ambiente in modalità Watch per sincronizzare i sorgenti mentre modifich
 docker compose up --build --watch
 ```
 
-Compose aggiorna i sorgenti nel container e ricostruisce l'immagine se cambiano il `Dockerfile`, `package.json` o `package-lock.json`. Premi `Ctrl+C` per terminare la sessione Watch.
+Compose aggiorna i sorgenti nel container e ricostruisce l'immagine se cambiano il `Dockerfile`, `package.json` o `pnpm-lock.yaml`. Premi `Ctrl+C` per terminare la sessione Watch.
 
 ## Build e test in locale
 
 Usa il servizio `web` per eseguire la build di produzione di Next.js e il test di integrazione. Compose avvia MongoDB e fornisce `MONGODB_URI` al container di test.
 
 ```sh
-docker compose run --build --rm -T web sh -c 'npm run build && npm run test:integration'
+docker compose run --build --rm -T web sh -c 'pnpm build && pnpm test:integration'
 ```
 
 Per verificare separatamente il `Dockerfile`, esegui lo stesso comando di build dell'immagine usato nella CI.
@@ -54,7 +54,7 @@ Per verificare separatamente il `Dockerfile`, esegui lo stesso comando di build 
 docker build --tag mindcompanion-web:ci .
 ```
 
-Se la build dell'immagine fallisce, controlla che i file richiesti siano nel contesto, verifica i pattern di [`.dockerignore`](../.dockerignore) e leggi l'output di `npm ci` nel container Linux. La [guida CI](ci.md) descrive i controlli sulle pull request.
+Se la build dell'immagine fallisce, controlla che i file richiesti siano nel contesto, verifica i pattern di [`.dockerignore`](../.dockerignore) e leggi l'output di `pnpm install` nel container Linux. La [guida CI](ci.md) descrive i controlli sulle pull request.
 
 ## Arresto
 
