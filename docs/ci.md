@@ -23,7 +23,7 @@ La CI verifica che le modifiche possano essere compilate con Next.js, che l'appl
 
 ## Prima di aprire una pull request
 
-Esegui i comandi dalla radice della repository. Sul computer usa Node.js 24 e pnpm 10.
+Esegui i comandi dalla radice della repository. Sul computer usa Node.js 24 e pnpm 10.33.2, la versione usata dalla CI. L'installazione è descritta nella [guida dell'ambiente](environment.md#comandi-fuori-da-docker).
 
 ```sh
 git diff --check HEAD

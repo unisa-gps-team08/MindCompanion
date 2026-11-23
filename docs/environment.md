@@ -56,6 +56,20 @@ docker build --tag mindcompanion-web:ci .
 
 Se la build dell'immagine fallisce, controlla che i file richiesti siano nel contesto, verifica i pattern di [`.dockerignore`](../.dockerignore) e leggi l'output di `pnpm install` nel container Linux. La [guida CI](ci.md) descrive i controlli sulle pull request.
 
+## Comandi fuori da Docker
+
+Per eseguire i comandi direttamente sul computer servono Node.js 24 e **pnpm 10.33.2**. È la versione fissata nel [`Dockerfile`](../Dockerfile), nella [CI](../.github/workflows/ci.yml) e in [`verify-project`](../.github/scripts/verify-project). Usa la stessa versione per installare le dipendenze del lockfile come nella CI.
+
+```sh
+npm install --global pnpm@10.33.2
+pnpm --version
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm build
+```
+
+`pnpm dev` avvia il server su `localhost:3000`. L'app legge `MONGODB_URI` per connettersi al database. Il MongoDB di Compose è su una rete interna e non è raggiungibile dal computer: imposta in `.env.local` l'URI di un'istanza MongoDB 8.0 che puoi raggiungere. Il file è escluso da Git. Senza `MONGODB_URI` l'[endpoint di stato](http://127.0.0.1:3000/api/health) risponde con HTTP `503`.
+
 ## Arresto
 
 ```sh
@@ -63,3 +77,23 @@ docker compose down
 ```
 
 Il comando ferma i servizi e conserva il volume MongoDB.
+
+## Struttura del codice
+
+Il codice applicativo è in `src/`. L'alias di import `@/*` punta a `src/*`.
+
+| Percorso | Contenuto |
+| --- | --- |
+| `src/app/` | Route e layout dell'App Router. Le route handler sono in `src/app/api/`, per esempio [`api/health/route.ts`](../src/app/api/health/route.ts). |
+| `src/components/ui/` | Componenti UI di shadcn, configurati in [`components.json`](../components.json). |
+| `src/lib/` | Utility condivise, come `cn` in `utils.ts`. |
+| `src/db/connect.ts` | Connessione a MongoDB con Mongoose. |
+| `src/db/models/` | Model Mongoose, uno per file. Le regole sono nel [README dei model](../src/db/models/README.md). |
+| `public/` | Asset statici. |
+| `tests/` | Test di integrazione. |
+
+### Connessione a MongoDB
+
+[`connectDB()`](../src/db/connect.ts) legge `MONGODB_URI` e apre la connessione con Mongoose. Se la variabile manca, lancia un errore. Se MongoDB non risponde entro 3 secondi, la chiamata fallisce.
+
+Mongoose riusa la connessione già aperta, quindi una route può chiamare `connectDB()` a ogni richiesta prima di usare un model. L'[endpoint di stato](../src/app/api/health/route.ts) segue questo schema e risponde con HTTP `503` quando la connessione fallisce.
