@@ -28,7 +28,7 @@ async function waitForAnalysis(taskId) {
     const status = task?.status;
     if (status === "SUCCESS") return;
     if (status !== "PENDING" && status !== "IN_PROGRESS") {
-      throw new Error(`SonarCloud analysis stopped with status ${status ?? "unknown"}`);
+      throw new Error("SonarCloud analysis did not complete successfully. Review its background task.");
     }
     await setTimeout(5_000);
   }
