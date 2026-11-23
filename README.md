@@ -50,7 +50,8 @@ Usa dati fittizi. Dettagli e diagnosi nella
 ## Comandi fuori da Docker
 
 Servono Node.js 24 e pnpm 10.33.2, la versione usata da CI e `Dockerfile`.
-Installa pnpm con `npm install --global pnpm@10.33.2`.
+Installa pnpm con `npm install --global pnpm@10.33.2`. Dettagli nella
+[guida dell'ambiente](docs/environment.md#comandi-fuori-da-docker).
 
 | Azione | Comando | Note |
 | --- | --- | --- |
@@ -73,7 +74,9 @@ completa è in [Prima di aprire una pull request](docs/ci.md#prima-di-aprire-una
 | --- | --- | --- |
 | Aggiungere una pagina o un layout | `src/app/` | App Router di Next.js. |
 | Aggiungere una route API | `src/app/api/<nome>/route.ts` | Chiama `connectDB()` da `@/db/connect` prima di usare un model, come in [`api/health`](src/app/api/health/route.ts). |
+| Connettersi a MongoDB | [`src/db/connect.ts`](src/db/connect.ts) | `connectDB()` legge `MONGODB_URI` e riusa la connessione aperta. Lancia un errore se la variabile manca o se MongoDB non risponde entro 3 secondi. |
 | Aggiungere un model Mongoose | `src/db/models/`, un file per model | Nome e campi dal class diagram. Segui il [README dei model](src/db/models/README.md). |
+| Consultare i test di integrazione | `tests/integration/` | `pnpm test:integration` esegue solo [`health.test.mjs`](tests/integration/health.test.mjs) con `node:test`. Per includere altri file serve modificare lo script in `package.json` con una PR del team. |
 | Usare i componenti UI | `src/components/ui/` | Componenti shadcn configurati in [`components.json`](components.json). La utility `cn` è in `src/lib/utils.ts`. |
 | Aggiungere asset statici | `public/` | Serviti dalla radice del sito. |
 | Importare un modulo | `@/…` | L'alias `@/*` punta a `src/*`. |
@@ -81,7 +84,9 @@ completa è in [Prima di aprire una pull request](docs/ci.md#prima-di-aprire-una
 Nomi, tipi e firme seguono il class diagram, l'ordine delle chiamate il sequence
 diagram. Dipendenze, configurazione del progetto, istruzioni degli agenti e
 workflow si cambiano solo con una PR separata del team. Commit in stile
-Conventional Commits, in italiano. Regole complete in [AGENTS.md](AGENTS.md).
+Conventional Commits, in italiano. Regole complete in [AGENTS.md](AGENTS.md),
+struttura delle cartelle nella
+[guida dell'ambiente](docs/environment.md#struttura-del-codice).
 
 ## Task con il workflow agentico
 
@@ -114,6 +119,9 @@ Per un task reale servono su `main` il caso d'uso, i modelli e i test frame in
 
 Passo passo con schermate: [guida al workflow](docs/guida-workflow-mindcompanion.md).
 Configurazione e protezioni: [workflow agentico](docs/workflow-agentico.md).
+Se un run risulta **Skipped**, il branch esiste già, la patch è fuori ambito, il
+revisore non produce il report o OAuth è scaduto, consulta
+[Diagnosi e ripartenza](docs/guida-workflow-mindcompanion.md#diagnosi-e-ripartenza).
 
 ## Controlli automatici della CI
 
@@ -145,6 +153,21 @@ gh label create fase:implementazione --color 1D76DB
 gh label create fase:test --color 5319E7
 gh label create prova --color B60205
 ```
+
+Ogni fase di Claude ha un limite di tempo e di turni, definito nel relativo
+workflow. Il consumo ricade sull'abbonamento associato al token.
+
+| Fase | Tempo massimo | Turni massimi |
+| --- | --- | --- |
+| Piano | 15 minuti | 15 |
+| Implementazione | 30 minuti | 40 |
+| Test | 30 minuti | 30 |
+| Revisione | 15 minuti | 20 |
+
+Il ruleset `protect-main` richiede il check `build` e la revisione di un code
+owner prima del merge. Dettagli in
+[Protezioni e tracciabilità](docs/workflow-agentico.md#protezioni-e-tracciabilità)
+e in [Configurazione per chi mantiene il workflow](docs/guida-workflow-mindcompanion.md#configurazione-per-chi-mantiene-il-workflow).
 
 ## SonarCloud
 
