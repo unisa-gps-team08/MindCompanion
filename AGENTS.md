@@ -26,6 +26,12 @@ Un task è chiuso solo se `pnpm lint` e `pnpm build` passano.
 Il test runner non è ancora stato scelto: serve una decisione del team (vedi
 sotto). Finché manca, non aggiungerne uno di tua iniziativa.
 
+## Commit
+
+Crea un commit per ogni task completato, dopo che `pnpm lint` e `pnpm build`
+passano. Un commit per task: non accorpare task diversi. Messaggi in stile
+Conventional Commits (`feat:`, `fix:`, `docs:`, `build:`), scritti in italiano.
+
 ## Specifica
 
 - Usa i casi d'uso e i modelli versionati in `docs/` come specifica per ogni

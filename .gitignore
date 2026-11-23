@@ -4,6 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
+.pnpm-store/
 
 # testing
 /coverage
@@ -20,17 +21,28 @@
 *.pem
 
 # debug
+*.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
+pnpm-debug.log*
 
-# local env files
-.env*.local
+# local env files (i template .env.example restano versionati)
 .env
+.env.*
+!.env.example
 
 # vercel
 .vercel
 
-# typescript
+# typescript / lint cache
 *.tsbuildinfo
 next-env.d.ts
+.eslintcache
+
+# editor
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# agenti (impostazioni locali)
+.claude/settings.local.json
