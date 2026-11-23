@@ -1,15 +1,40 @@
+# VCS e CI
 .git
 .github
+.gitignore
+
+# agenti e documentazione
 .claude
 docs
+*.md
+
+# dipendenze e build
 node_modules
+.pnpm-store
 .next
 out
 build
 coverage
+
+# segreti
 .env*
 .npmrc
 *.pem
+
+# cache e log
 *.tsbuildinfo
+.eslintcache
 next-env.d.ts
-npm-debug.log*
+*.log
+
+# editor e OS
+.idea
+.vscode
+.DS_Store
+
+# file Docker e analisi
+Dockerfile
+compose.yaml
+.dockerignore
+sonar-project.properties
+.vercel

@@ -3,5 +3,8 @@ set -euo pipefail
 
 export NEXT_TELEMETRY_DISABLED=1
 
-npm ci
-npm run build
+command -v pnpm >/dev/null || npm install --global --ignore-scripts pnpm@10.33.2
+
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm build
