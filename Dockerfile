@@ -10,8 +10,7 @@ USER node
 COPY --chown=node:node package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
-COPY --chown=node:node tsconfig.json next.config.ts postcss.config.mjs ./
-COPY --chown=node:node app/ ./app/
+COPY --chown=node:node tsconfig.json next.config.ts postcss.config.mjs eslint.config.mjs ./
 COPY --chown=node:node src/ ./src/
 COPY --chown=node:node public/ ./public/
 COPY --chown=node:node tests/integration/health.test.mjs ./tests/integration/
