@@ -28,7 +28,7 @@ async function waitForAnalysis(taskId) {
     const status = task?.status;
     if (status === "SUCCESS") return;
     if (status !== "PENDING" && status !== "IN_PROGRESS") {
-      throw new Error(`SonarCloud analysis stopped with status ${status ?? "unknown"}`);
+      throw new Error("SonarCloud analysis did not complete successfully. Review its background task.");
     }
     await setTimeout(5_000);
   }
@@ -55,5 +55,9 @@ const issueCount = paging?.total;
 if (!Number.isSafeInteger(issueCount) || issueCount < 0) {
   throw new Error("SonarCloud did not return a valid security issue count");
 }
-console.log(`Open SonarCloud security issues: ${issueCount}`);
-if (issueCount > 0) process.exitCode = 1;
+if (issueCount > 0) {
+  console.error("SonarCloud reported open security issues. Review them on the project Issues page.");
+  process.exitCode = 1;
+} else {
+  console.log("Open SonarCloud security issues: 0");
+}
