@@ -55,5 +55,9 @@ const issueCount = paging?.total;
 if (!Number.isSafeInteger(issueCount) || issueCount < 0) {
   throw new Error("SonarCloud did not return a valid security issue count");
 }
-console.log(`Open SonarCloud security issues: ${issueCount}`);
-if (issueCount > 0) process.exitCode = 1;
+if (issueCount > 0) {
+  console.error("SonarCloud reported open security issues. Review them on the project Issues page.");
+  process.exitCode = 1;
+} else {
+  console.log("Open SonarCloud security issues: 0");
+}
