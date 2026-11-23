@@ -35,13 +35,13 @@ services:
             - Dockerfile
             - compose.yaml
             - package.json
-            - package-lock.json
+            - pnpm-lock.yaml
         - action: rebuild
           path: Dockerfile
         - action: rebuild
           path: package.json
         - action: rebuild
-          path: package-lock.json
+          path: pnpm-lock.yaml
 
   mongodb:
     image: mongo:8.0
