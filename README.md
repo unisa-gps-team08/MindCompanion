@@ -39,6 +39,8 @@ Esegui i comandi dalla radice della repository.
 | Leggere i log | `docker compose logs --tail 100 web mongodb` | Ultime 100 righe di log di ciascun servizio. |
 | Eseguire build e test di integrazione | `docker compose run --build --rm -T web sh -c 'pnpm build && pnpm test:integration'` | Build di produzione e test di `/api/health` con il MongoDB di Compose. |
 | Costruire l'immagine come in CI | `docker build --tag mindcompanion-web:ci .` | Verifica il `Dockerfile` e i pattern di `.dockerignore`. |
+| Riapplicare schema e seed del database | `docker compose run --rm db-setup` | Aggiorna struttura e dati fittizi condivisi da `src/db/setup/`. Succede anche a ogni `docker compose up`. Dettagli nel [README del setup](src/db/setup/README.md). |
+| Ripartire con il database pulito | `docker compose run --rm db-setup node src/db/setup/applica.mjs --reset` | Cancella i dati locali e riapplica schema e seed. |
 | Fermare i servizi | `docker compose down` | Ferma i container e conserva il volume `mongodb-data`. |
 | Cancellare i dati locali | `docker compose down --volumes` | Ferma i container e **elimina** il volume con i dati di MongoDB. |
 

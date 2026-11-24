@@ -1,0 +1,32 @@
+{
+  "collezione": "pianiAlimentari",
+  "descrizione": "PianoAlimentare con Pasto (1..*) incorporato: al massimo un piano per paziente (associazione segue 0..1).",
+  "validatore": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "required": ["paziente", "dataCreazione", "pasti"],
+      "properties": {
+        "paziente": { "bsonType": "objectId" },
+        "dataCreazione": { "bsonType": "date" },
+        "dataUltimaModifica": { "bsonType": ["date", "null"] },
+        "raccomandazioniIdriche": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." },
+        "raccomandazioniNutrizionali": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." },
+        "pasti": {
+          "bsonType": "array",
+          "minItems": 1,
+          "items": {
+            "bsonType": "object",
+            "required": ["giorno", "tipo", "alimenti", "porzioni"],
+            "properties": {
+              "giorno": { "enum": ["LUNEDI", "MARTEDI", "MERCOLEDI", "GIOVEDI", "VENERDI", "SABATO", "DOMENICA"] },
+              "tipo": { "enum": ["COLAZIONE", "PRANZO", "CENA", "SPUNTINO"] },
+              "alimenti": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." },
+              "porzioni": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." }
+            }
+          }
+        }
+      }
+    }
+  },
+  "indici": [{ "chiavi": { "paziente": 1 }, "opzioni": { "unique": true } }]
+}
