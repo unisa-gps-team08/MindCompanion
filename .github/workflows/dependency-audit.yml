@@ -1,0 +1,31 @@
+name: Audit giornaliero delle dipendenze
+
+on:
+  schedule:
+    - cron: '17 7 * * *'
+      timezone: Europe/Rome
+
+permissions:
+  contents: read
+
+env:
+  PNPM_VERSION: 10.33.2
+
+jobs:
+  dependency-audit:
+    name: Audit delle dipendenze
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Configura Node.js 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Installa pnpm
+        run: npm install --global --ignore-scripts "pnpm@$PNPM_VERSION"
+      - name: Controlla le vulnerabilità delle dipendenze
+        run: pnpm audit --audit-level high

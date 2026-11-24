@@ -8,7 +8,12 @@ La CI verifica che le modifiche possano essere compilate con Next.js, che l'appl
 | --- | --- |
 | Apertura, riapertura, aggiornamento o passaggio a *Ready for review* di una pull request | Il job `build` esegue i controlli elencati qui sotto. Se SonarCloud è configurato, il suo job si aggiunge per le PR interne verso `main` aperte da utenti diversi da Dependabot. |
 | Push su `main` | SonarCloud analizza il ramo principale quando è configurato. Il primo push con il workflow attivo avvia l'analisi iniziale. |
-| Ogni giorno alle **07:17, ora di Roma** | GitHub Actions esegue l'audit delle dipendenze sul ramo predefinito `main`. La pianificazione si attiva dal momento in cui il workflow è presente su quel ramo. |
+
+## Audit giornaliero delle dipendenze
+
+Il workflow [`dependency-audit.yml`](../.github/workflows/dependency-audit.yml) parte ogni giorno alle **07:17, ora di Roma**, una volta presente sul ramo predefinito `main`. Esegue `pnpm audit --audit-level high` sull'ultimo commit di `main`, anche nei giorni senza pull request. Trovi gli esiti in **Actions → Audit giornaliero delle dipendenze**.
+
+Sulle pull request il controllo delle dipendenze fa parte del job `build`.
 
 ## Controlli della pull request
 
@@ -39,7 +44,7 @@ Lo [script di verifica usato in CI](../.github/scripts/verify-project) esegue `p
 
 ## SonarCloud e falsi positivi
 
-Il job SonarCloud si attiva quando è impostata la variabile `SONAR_PROJECT_KEY`. Servono anche `SONAR_ORGANIZATION`, il secret `SONAR_TOKEN` e un progetto SonarQube Cloud configurato per l'analisi tramite GitHub Actions. Il token deve poter eseguire l'analisi e leggere le segnalazioni. I passaggi di configurazione sono nel [README](../README.md#sonarcloud).
+Il job SonarCloud si attiva quando è impostata la variabile `SONAR_PROJECT_KEY`. Servono anche `SONAR_ORGANIZATION`, il secret `SONAR_TOKEN` e un progetto SonarQube Cloud configurato per l'analisi tramite GitHub Actions. Il token deve poter eseguire l'analisi e leggere le segnalazioni. Su una PR verso un ramo di lavoro o da un fork il job risulta **Skipped**. I passaggi di configurazione sono nel [README](../README.md#sonarcloud).
 
 Il job attende il completamento dell'analisi e richiede **zero segnalazioni di sicurezza aperte** per la PR in esame o per `main`, a seconda dell'evento. Se il job fallisce per un problema di credenziali, configurazione o comunicazione con SonarCloud, il log indica il passaggio da controllare.
 
