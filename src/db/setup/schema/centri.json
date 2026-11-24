@@ -1,0 +1,44 @@
+{
+  "collezione": "centri",
+  "descrizione": "Centro del catalogo territoriale con Attivita (0..*) incorporate. Dati in chiaro, interrogabili dai tutori.",
+  "validatore": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "required": ["nome", "indirizzo", "comune", "provincia", "regione", "telefono", "email", "fonte", "dataUltimaVerifica", "amministratore"],
+      "properties": {
+        "nome": { "bsonType": "string", "minLength": 1 },
+        "indirizzo": { "bsonType": "string", "minLength": 1 },
+        "comune": { "bsonType": "string", "minLength": 1 },
+        "provincia": { "bsonType": "string", "minLength": 1 },
+        "regione": { "bsonType": "string", "minLength": 1 },
+        "telefono": { "bsonType": "string" },
+        "email": { "bsonType": "string" },
+        "fonte": { "bsonType": "string", "minLength": 1 },
+        "dataUltimaVerifica": { "bsonType": "date" },
+        "amministratore": {
+          "bsonType": "objectId",
+          "description": "Amministratore che ha inserito il centro o ne ha fatto l'ultima verifica (gestisce)."
+        },
+        "attivita": {
+          "bsonType": "array",
+          "items": {
+            "bsonType": "object",
+            "required": ["nome", "tipo", "descrizione"],
+            "properties": {
+              "nome": { "bsonType": "string", "minLength": 1 },
+              "tipo": { "enum": ["FISICA", "SOCIALE"] },
+              "descrizione": { "bsonType": "string" },
+              "dataInizio": { "bsonType": ["date", "null"] },
+              "dataFine": { "bsonType": ["date", "null"] }
+            }
+          }
+        }
+      }
+    }
+  },
+  "indici": [
+    { "chiavi": { "comune": 1 } },
+    { "chiavi": { "provincia": 1 } },
+    { "chiavi": { "regione": 1 } }
+  ]
+}
