@@ -39,7 +39,10 @@ riavviare i servizi.
 | --- | --- | --- |
 | Riapplicare schema e seed con i servizi accesi | `docker compose run --rm db-setup` | Aggiorna validatori e indici e riporta i documenti del seed alla versione dei file. Gli altri dati locali restano. |
 | Ripartire da zero | `docker compose run --rm db-setup node src/db/setup/applica.mjs --reset` | Cancella tutto il database locale, poi applica schema e seed. |
-| Fuori da Docker | `pnpm db:setup` oppure `pnpm db:reset` | Come sopra, sul database di `MONGODB_URI` in `.env.local`. |
+| Fuori da Docker | `pnpm db:setup` oppure `pnpm db:reset` | Usa il database indicato da `MONGODB_URI` nella shell. |
+
+Se l'URI è in `.env.local`, caricalo esplicitamente dalla radice del progetto
+con `node --env-file=.env.local src/db/setup/applica.mjs`.
 
 ## Utenti del seed
 

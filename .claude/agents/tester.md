@@ -10,4 +10,6 @@ dell'implementazione è fuori dal contesto del tester.
 
 Crea solo nuovi file dentro l'ambito dei test. Associa almeno un test a ogni
 frame e indica il suo identificativo nel nome o nel commento. Usa dati fittizi.
-La pipeline esegue build e test in un job separato e segnala gli esiti sulla PR.
+Un job separato applica la patch, esegue `verify-project` e riporta l'esito
+di lint e build sulla PR. L'esecuzione dei test dei frame va verificata
+prima del merge.

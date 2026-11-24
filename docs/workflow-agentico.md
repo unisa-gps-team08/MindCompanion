@@ -56,10 +56,9 @@ che funzionano sia l'installazione dell'app sia l'accesso con l'abbonamento.
 
 1. Integra in `docs/` gli artefatti approvati che il team può pubblicare:
    caso d'uso, modelli rilevanti, firme pubbliche e test frame con esiti attesi.
-   Configura `.github/scripts/verify-project` come script Bash da eseguire
-   dalla radice, con i comandi effettivi per installare le dipendenze, fare
-   la build ed eseguire i test. La CI delle PR dell'agente fallisce finché
-   lo script manca.
+   Usa [`verify-project`](../.github/scripts/verify-project) dalla radice per
+   installare le dipendenze ed eseguire lint e build. Concorda con il team
+   come eseguire i test dei casi d'uso.
 2. Un membro con accesso Write apre l'issue **Task per agente**. Per l'ambito
    usa percorsi esatti o directory con `/` finale, sotto la radice. I manifest
    delle dipendenze, i workflow e le istruzioni degli agenti vanno gestiti
@@ -71,8 +70,10 @@ che funzionano sia l'installazione dell'app sia l'accesso con l'abbonamento.
 4. Dopo la creazione della PR in bozza, applica `fase:test` **alla PR**.
    Il tester riceve le specifiche e le firme pubbliche dal commit del piano,
    genera solo nuovi file di test e lavora senza accedere al branch
-   dell'implementazione. Un job separato esegue la verifica sul codice e
-   segnala l'esito insieme ai test frame nella PR.
+   dell'implementazione. Un job separato esegue `verify-project` sul checkout
+   con la patch e riporta l'esito di lint e build nella PR. Esegui i nuovi
+   test prima del merge. Il test automatico di integrazione nel job `build`
+   della PR riguarda `/api/health`.
 5. Quando il commit dei test è visibile, rendi la PR pronta per la revisione.
    **CI** e **Agente revisore** si avviano da `ready_for_review`. Leggi il
    commento di Claude, verifica il check `build` e ottieni l'approvazione di un
@@ -90,12 +91,15 @@ di nuovo pronta per ripetere la revisione. Se il branch
 verifica il branch e apri manualmente una PR in bozza verso `main` con
 `Closes #N`. Poi prosegui con i test.
 
-I workflow sono `piano.yml`, `implementa.yml`, `test.yml`, `revisione.yml`,
-`agente.yml` e `ci.yml`. Le quattro fasi riusano i job di
+I workflow degli agenti sono `piano.yml`, `implementa.yml`, `test.yml`,
+`revisione.yml` e `agente.yml`. Le quattro fasi riusano i job di
 `esegui-fase.yml`. Il tester e il revisore usano le istruzioni in
 `.claude/agents/`. Le fasi dichiarano il timeout e il numero massimo di giri.
 Imposta nel piano del task la soglia di tentativi oltre cui passa a una persona.
 Con OAuth il consumo ricade sull'abbonamento associato al token.
+
+La [guida CI](ci.md) descrive i controlli di `ci.yml` sulle PR e sui push a
+`main` e il workflow separato `dependency-audit.yml` per l'audit giornaliero.
 
 ## Protezioni e tracciabilità
 
