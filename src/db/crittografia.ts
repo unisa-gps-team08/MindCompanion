@@ -44,7 +44,7 @@ export function cifra(testo: string): string {
   if (isCifrato(testo)) return testo;
 
   const iv = randomBytes(LUNGHEZZA_IV);
-  const cifrario = createCipheriv(ALGORITMO, getChiave(), iv);
+  const cifrario = createCipheriv(ALGORITMO, getChiave(), iv, { authTagLength: LUNGHEZZA_TAG });
   const cifrato = Buffer.concat([cifrario.update(testo, "utf8"), cifrario.final()]);
   return PREFISSO + Buffer.concat([iv, cifrario.getAuthTag(), cifrato]).toString("base64");
 }
@@ -58,7 +58,11 @@ export function decifra(valore: string): string {
   const dati = Buffer.from(valore.slice(PREFISSO.length), "base64");
   const iv = dati.subarray(0, LUNGHEZZA_IV);
   const tag = dati.subarray(LUNGHEZZA_IV, LUNGHEZZA_IV + LUNGHEZZA_TAG);
-  const decifrario = createDecipheriv(ALGORITMO, getChiave(), iv);
+  // authTagLength fissa la lunghezza attesa: un tag più corto, che renderebbe
+  // falsificabili i dati, viene rifiutato.
+  const decifrario = createDecipheriv(ALGORITMO, getChiave(), iv, {
+    authTagLength: LUNGHEZZA_TAG,
+  });
   decifrario.setAuthTag(tag);
   return Buffer.concat([
     decifrario.update(dati.subarray(LUNGHEZZA_IV + LUNGHEZZA_TAG)),
