@@ -1,7 +1,8 @@
 # Model Mongoose
 
 Un file per model, con nome e campi presi dal class diagram in `docs/`.
-Le route chiamano `connectDB()` da `@/db/connect` prima di usare un model.
+Le route chiamano i metodi pubblici dei model. I model usano `connectDB()` da
+`@/db/connect` per accedere a MongoDB.
 
 ```ts
 import { Schema, model, models } from "mongoose";

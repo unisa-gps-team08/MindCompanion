@@ -11,7 +11,7 @@ importa e non contiene regole proprie.
   senza una PR di dipendenze.
 - Codice applicativo in `src/` (`src/app/` per route e layout), asset statici
   in `public/`. Alias import: `@/*` → `src/*`.
-- Node.js 20 o superiore.
+- Node.js 20 o superiore. Usa Node.js 24 e pnpm 10.33.2 per riprodurre la CI.
 
 ## Comandi
 
@@ -22,9 +22,9 @@ importa e non contiene regole proprie.
 | `pnpm build` | Build di produzione (controlla anche i tipi) |
 | `pnpm lint`  | ESLint                             |
 
-Un task è chiuso solo se `pnpm lint` e `pnpm build` passano.
-Il test runner non è ancora stato scelto: serve una decisione del team (vedi
-sotto). Finché manca, non aggiungerne uno di tua iniziativa.
+Un task è chiuso solo se `pnpm lint`, `pnpm build` e i test previsti passano.
+`pnpm test:integration` esegue il test di `/api/health` con `node:test`.
+La scelta di un runner per la suite applicativa richiede una decisione del team.
 
 ## Commit
 
@@ -132,10 +132,10 @@ Mai committare `.env*` o token. Usa dati fittizi in esempi e fixture.
 
 ## CI e merge
 
-- La CI esegue `.github/scripts/verify-project` (script Bash dalla radice:
-  `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm build`, poi i test quando esistono).
-  **Lo script non esiste ancora**: il team deve aggiungerlo, finché manca la CI
-  fallisce sulle PR dell'agente (`agent/issue-*`).
+- Il job `build` delle pull request esegue `pnpm audit --audit-level high`,
+  `.github/scripts/verify-project` per installazione, lint e build, e
+  `pnpm test:integration` con MongoDB. L'audit giornaliero su `main` è un
+  workflow separato. Dettagli nella [guida CI](docs/ci.md).
 - Prima del merge servono test eseguiti e revisione umana della PR da parte di
   un code owner diverso dall'autore.
 - Lingua: documentazione, commenti di revisione e messaggi di PR in italiano.

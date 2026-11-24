@@ -75,7 +75,7 @@ completa è in [Prima di aprire una pull request](docs/ci.md#prima-di-aprire-una
 | Azione | Dove | Regola |
 | --- | --- | --- |
 | Aggiungere una pagina o un layout | `src/app/` | App Router di Next.js. |
-| Aggiungere una route API | `src/app/api/<nome>/route.ts` | Chiama `connectDB()` da `@/db/connect` prima di usare un model, come in [`api/health`](src/app/api/health/route.ts). |
+| Aggiungere una route API | `src/app/api/<nome>/route.ts` | Chiama i metodi pubblici dei model per accedere ai dati. [`api/health`](src/app/api/health/route.ts) verifica direttamente la connessione a MongoDB. |
 | Connettersi a MongoDB | [`src/db/connect.ts`](src/db/connect.ts) | `connectDB()` legge `MONGODB_URI` e riusa la connessione aperta. Lancia un errore se la variabile manca o se MongoDB non risponde entro 3 secondi. |
 | Aggiungere un model Mongoose | `src/db/models/`, un file per model | Nome e campi dal class diagram. Segui il [README dei model](src/db/models/README.md). |
 | Consultare i test di integrazione | `tests/integration/` | `pnpm test:integration` esegue solo [`health.test.mjs`](tests/integration/health.test.mjs) con `node:test`. Per includere altri file serve modificare lo script in `package.json` con una PR del team. |
@@ -104,7 +104,7 @@ successiva. Le issue libere sono disattivate: usa uno dei moduli.
 | Rigenerare il piano | Rimuovi e riapplica `fase:piano` | Nuovo piano sulla versione corrente dell'issue e di `main`. |
 | Autorizzare l'implementazione | Label `fase:implementazione` sulla stessa issue, mantenendo `fase:piano` | **Agente implementatore** pubblica il branch `agent/issue-N` e apre la PR in bozza con `Closes #N`. |
 | Aprire la PR a mano | Link **Apri la PR in bozza** nel riepilogo del run | Serve se GitHub blocca la PR automatica. Base `main`, confronto `agent/issue-N`, `Closes #N` nella descrizione. |
-| Generare ed eseguire i test | Label `fase:test` sulla PR in bozza `agent/issue-N` | Il tester aggiunge nuovi file di test. Il commento **Test dei frame** riporta esito e log. |
+| Generare i test dei frame | Label `fase:test` sulla PR in bozza `agent/issue-N` | Il tester aggiunge nuovi file di test. Il commento **Test dei frame** riporta l'esito di `verify-project`. Esegui i nuovi test prima del merge. |
 | Avviare CI e revisione | **Ready for review** sulla PR | Partono la CI e **Agente revisore**, che commenta il commit esaminato. |
 | Ripetere la revisione | Riporta la PR in bozza, poi **Ready for review** | Nuovo commento del revisore sull'ultimo commit. |
 | Chiedere a Claude | Commento con `@claude` su un'issue o su una PR interna, anche inline nel diff | `claude[bot]` risponde. Su una PR può spiegare il diff o correggere il branch. |
@@ -129,9 +129,9 @@ revisore non produce il report o OAuth è scaduto, consulta
 
 | Quando | Cosa parte |
 | --- | --- |
-| PR aperta, riaperta, aggiornata o resa pronta per la revisione | Job `build`: Gitleaks, controlli Git e Python, Semgrep, audit delle dipendenze, lint e build, test di integrazione con un MongoDB temporaneo. SonarCloud, se configurato, sulle PR interne verso `main`. |
+| PR aperta, riaperta, aggiornata o resa pronta per la revisione | Job `build` con Gitleaks, controlli Git e Python, Semgrep, audit delle dipendenze, lint, build, test di integrazione con un MongoDB temporaneo e build dell'immagine web. SonarCloud, se configurato, sulle PR interne verso `main`. |
 | Push su `main` | Analisi SonarCloud del ramo principale, se configurato. |
-| Ogni giorno alle 07:17, ora di Roma | Audit delle dipendenze su `main`. |
+| Ogni giorno alle 07:17, ora di Roma | Workflow [Audit giornaliero delle dipendenze](.github/workflows/dependency-audit.yml) sul ramo predefinito `main`. Gli esiti sono nella scheda **Actions**. |
 
 Come far passare ogni controllo: [guida CI](docs/ci.md).
 

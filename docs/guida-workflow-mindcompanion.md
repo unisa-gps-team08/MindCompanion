@@ -1,7 +1,7 @@
 # Come usare il workflow agentico di MindCompanion
 
 **Destinatari** · PM, sviluppatori e revisori del team C08\
-**Configurazione verificata** · 20 novembre 2026, branch `main`, commit `50c6912`
+**Schermate del collaudo** · 20 novembre 2026, branch `main`, commit `50c6912`
 
 Il workflow trasforma un caso d’uso documentato in una pull request verificabile. Claude Code propone il piano, implementa le modifiche dopo il via libera, scrive i test in una sessione separata e confronta la PR con le specifiche. Il team decide quando far avanzare il task, verifica il codice e approva il merge. GitHub Actions esegue le fasi e GitHub Projects ne mostra l’avanzamento.
 
@@ -16,7 +16,7 @@ Il workflow trasforma un caso d’uso documentato in una pull request verificabi
 | Apri **Task per agente** | Issues | Il modulo applica `task-agente` e la board acquisisce l’issue. |
 | Applica `fase:piano` | Issue | Il pianificatore pubblica il piano come commento. |
 | Applica `fase:implementazione` dopo la verifica del piano | Issue | GitHub verifica la build, pubblica `agent/issue-N` e tenta di aprire la PR in bozza. |
-| Applica `fase:test` | PR in bozza | Il tester aggiunge nuovi file di test. GitHub li esegue e pubblica l’esito sulla PR. |
+| Applica `fase:test` | PR in bozza | Il tester aggiunge nuovi file di test. GitHub verifica lint e build e pubblica l’esito sulla PR. |
 | Seleziona **Ready for review** | PR | Partono CI e revisione. Claude pubblica le osservazioni sul commit esaminato. |
 | Approva e fai **Squash and merge** | PR | GitHub integra il codice e chiude l’issue collegata da `Closes #N`. |
 
@@ -29,15 +29,13 @@ Prima di iniziare, porta su `main` con una PR del team:
 - Il codice e le dipendenze del progetto.
 - Il caso d’uso approvato e i modelli pertinenti in `docs/`. Scegli i diagrammi che descrivono i comportamenti e le interfacce interessate dal task.
 - Le firme pubbliche e i test frame, con identificativo, condizioni ed esito atteso. Includi il flusso principale, i casi limite e gli errori osservabili.
-- Lo script Bash `.github/scripts/verify-project`. Viene eseguito dalla radice della repo e deve contenere i comandi effettivi per installare le dipendenze, compilare, svolgere i controlli previsti dal team ed eseguire i test. Deve restituire un codice di uscita diverso da zero quando un controllo fallisce.
-
-Puoi provare lo stesso script in locale dalla radice della repo in una shell Bash.
+Lo [script di verifica](../.github/scripts/verify-project) è già presente. Eseguilo in locale dalla radice della repo in una shell Bash.
 
 ```bash
 bash .github/scripts/verify-project
 ```
 
-La CI invoca questo script quando è presente. Finché manca, il check `build` di una PR ordinaria può risultare verde dopo i soli controlli di configurazione. Le fasi applicative e le PR sui branch `agent/issue-*` richiedono lo script.
+Lo script installa le dipendenze dal lockfile ed esegue lint e build. Il job `build` delle PR esegue anche `pnpm test:integration`, che copre `/api/health`. Per aggiungere l’esecuzione automatica dei test dei casi d’uso serve una PR del team. Vedi la [guida CI](ci.md).
 
 ## 2. Apri l’issue con il modulo
 
@@ -95,8 +93,8 @@ Se GitHub blocca la creazione automatica della PR, cerca **Apri la PR in bozza**
 
 1. Con la **PR ancora in bozza**, apri **Conversation**. Clicca sull’ingranaggio di **Labels** a destra e seleziona `fase:test`, usando lo stesso menu mostrato per l’issue.
 2. Il tester lavora con caso d’uso, firme pubbliche e test frame del riferimento approvato. La sessione è isolata dal branch dell’implementazione. Produce nuovi file entro l’ambito dei test e associa almeno un test a ogni frame.
-3. Un job separato applica i nuovi test al codice della PR ed esegue `verify-project`. Cerca il commit dei test e il commento **Test dei frame**, che include il link ai log e l’esito.
-4. Controlla che ogni frame abbia un test con l’esito atteso corretto. Se la suite applicativa fallisce, il workflow può pubblicare comunque i test per consentire la diagnosi. Prima della review, correggi il problema sul branch e riesegui la verifica. Se i test sono già stati pubblicati, evita di rigenerare gli stessi file.
+3. Un job separato applica i nuovi test al checkout di verifica ed esegue `verify-project`. Cerca il commit dei test e il commento **Test dei frame**, che include l’esito di lint e build.
+4. Controlla che ogni frame abbia un test con l’esito atteso corretto ed esegui i nuovi test prima della review. Lo script attuale verifica lint e build. Se la verifica fallisce, il workflow può pubblicare comunque i test per consentire la diagnosi.
 
 ## 5. Rivedi la PR e fai il merge
 
@@ -172,6 +170,7 @@ La board privata **MindCompanion Workflow** ha sei colonne **Da pianificare**, *
 | Esiste già il branch o la PR del task | Apri la PR esistente. Se esiste solo il branch, verifica i commit e apri la PR in bozza. Il workflow evita di sovrascrivere il branch esistente. |
 | La patch è fuori ambito o la PR è cambiata durante un run | Verifica diff e commit correnti. Correggi il perimetro nell’issue, se necessario rigenera il piano e riavvia la fase sull’elemento aggiornato. |
 | Il check applicativo è rosso | Apri il job `build` o il link nel commento **Test dei frame**. Leggi il primo errore, riproducilo con `bash .github/scripts/verify-project` e verifica di nuovo dopo la correzione. |
+| Cerchi l’audit giornaliero | Apri **Actions → Audit giornaliero delle dipendenze**. Nella PR l’audit delle dipendenze è un passaggio del job `build`. |
 | La PR è pronta ma il revisore non ha prodotto un report | Controlla i log di **Agente revisore**. Per una PR che cambia i file del workflow, la GitHub App può sospendere l’esecuzione finché il workflow sulla PR differisce da `main`. In quel caso la review umana resta il passaggio da completare prima del merge. |
 | OAuth risulta mancante, scaduto o rifiutato | Fai controllare il secret all’amministratore ed esegui **Verifica OAuth di Claude** su `main`. Se il controllo manuale passa ma una fase fallisce, verifica il passaggio del secret al workflow riutilizzabile. |
 
@@ -190,7 +189,8 @@ La configurazione è già presente su `main`. La GitHub App ufficiale di Claude 
 | --- | --- |
 | `piano.yml`, `implementa.yml`, `test.yml`, `revisione.yml` | Definiscono gli eventi, le condizioni, i permessi e i limiti delle singole fasi. |
 | `esegui-fase.yml` | Riusa i job che preparano il contesto, eseguono Claude, verificano le patch e pubblicano il risultato. |
-| `agente.yml`, `ci.yml`, `saluto.yml`, `oauth.yml` | Gestiscono le menzioni, la CI e le prove di configurazione. |
+| `agente.yml`, `saluto.yml`, `oauth.yml` | Gestiscono le menzioni e le prove di configurazione. |
+| `ci.yml`, `dependency-audit.yml` | Definiscono rispettivamente i [controlli di PR e push](ci.md#quando-parte) e l’[audit giornaliero su main](ci.md#audit-giornaliero-delle-dipendenze). |
 | `.github/scripts/agent_workflow.py` | Controlla ruolo del mittente, riferimenti del piano e ambito delle patch. Pubblica commenti, commit e PR. |
 | `AGENTS.md`, `CLAUDE.md`, `.claude/agents/` | Definiscono le regole del progetto e le istruzioni dei ruoli di test e revisione. |
 
@@ -198,6 +198,6 @@ La configurazione è già presente su `main`. La GitHub App ufficiale di Claude 
 
 ## Cosa è già stato verificato
 
-Su `main` sono stati verificati OAuth e OIDC, la risposta **Ciao!** del workflow **Saluto**, la risposta di `claude[bot]`, la pubblicazione del piano e l’inserimento automatico dell’issue nella board. Alla chiusura dell’issue di prova, GitHub Projects ha impostato **Fatto**. Il giro completo di implementazione, test e revisione applicativa richiede ancora un caso d’uso approvato, il codice e lo script di verifica del progetto.
+Durante il collaudo su `main` sono stati verificati OAuth e OIDC, la risposta **Ciao!** del workflow **Saluto**, la risposta di `claude[bot]`, la pubblicazione del piano e l’inserimento automatico dell’issue nella board. Alla chiusura dell’issue di prova, GitHub Projects ha impostato **Fatto**. Per eseguire il percorso completo su un caso d’uso prepara gli artefatti approvati e verifica come eseguire i relativi test.
 
 [Issue di collaudo](https://github.com/unisa-gps-team08/MindCompanion/issues/2) · [Piano pubblicato](https://github.com/unisa-gps-team08/MindCompanion/issues/2#issuecomment-7038505212) · [Run OAuth riuscito](https://github.com/unisa-gps-team08/MindCompanion/actions/runs/44727651085)

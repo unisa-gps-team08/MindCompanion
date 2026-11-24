@@ -19,11 +19,13 @@ Una volta avviato l'ambiente, apri [MindCompanion](http://127.0.0.1:3000). L'[en
 
 Il servizio `web` riceve `MONGODB_URI=mongodb://mongodb:27017/mindcompanion`. MongoDB è raggiungibile sulla rete interna di Compose e salva i dati nel volume `mongodb-data`. Usa dati fittizi per lo sviluppo.
 
+Il servizio `db-setup` applica lo schema e il seed condivisi prima di avviare `web`. Per riapplicarli o ripartire da un database vuoto, consulta la [guida a schema e seed](../src/db/setup/README.md).
+
 Se l'avvio fallisce, controlla lo stato dei servizi e i log.
 
 ```sh
 docker compose ps
-docker compose logs --tail 100 web mongodb
+docker compose logs --tail 100 web db-setup mongodb
 ```
 
 ## Porta locale
@@ -96,4 +98,4 @@ Il codice applicativo è in `src/`. L'alias di import `@/*` punta a `src/*`.
 
 [`connectDB()`](../src/db/connect.ts) legge `MONGODB_URI` e apre la connessione con Mongoose. Se la variabile manca, lancia un errore. Se MongoDB non risponde entro 3 secondi, la chiamata fallisce.
 
-Mongoose riusa la connessione già aperta, quindi una route può chiamare `connectDB()` a ogni richiesta prima di usare un model. L'[endpoint di stato](../src/app/api/health/route.ts) segue questo schema e risponde con HTTP `503` quando la connessione fallisce.
+Mongoose riusa la connessione già aperta. Le route applicative accedono ai dati tramite i metodi pubblici dei model, che usano `connectDB()`. L'[endpoint di stato](../src/app/api/health/route.ts) verifica direttamente la connessione e risponde con HTTP `503` quando MongoDB non è raggiungibile.
