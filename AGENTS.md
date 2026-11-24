@@ -84,13 +84,21 @@ e workflow (`.github/`). Segui l'architettura approvata dal team.
 - Niente `console.log` né codice commentato nelle PR. `// eslint-disable` solo
   con un commento che spiega il motivo.
 
+Le regole sui nomi valgono solo per funzioni e classi scritte da noi, e per i
+componenti, i tipi, le variabili e le costanti che le accompagnano. Non valgono
+per:
+
+- **i nomi dei file**, che non devono seguire la nomenclatura della
+  documentazione;
+- **i componenti e i pacchetti installati tramite libreria**, ad esempio i
+  componenti shadcn in `src/components/ui/` (`button.tsx`), che restano come li
+  genera la libreria.
+
 | Elemento | Convenzione | Esempio |
 | --- | --- | --- |
 | Componenti React, classi, tipi | PascalCase, senza prefisso `I` | `ElencoUtentiPage`, `Utente` |
 | Funzioni e variabili | camelCase | `salvaAvanzamento`, `pianoAttivo` |
 | Costanti globali | UPPER_SNAKE_CASE | `MAX_TENTATIVI_LOGIN` |
-| File di componenti | PascalCase.tsx | `EliminaUtenteButton.tsx` |
-| File di model | nome dell'entity | `src/db/models/Utente.ts` |
 
 - Funzioni brevi con una sola responsabilità; i componenti oltre circa 200 righe
   vanno divisi.
@@ -104,8 +112,15 @@ e workflow (`.github/`). Segui l'architettura approvata dal team.
 - Mai push diretti su `main`. Branch: `feature/<RF>-<descrizione>`,
   `fix/<descrizione>`, `refactor/<descrizione>`, `docs/<descrizione>`;
   `agent/issue-N` per il workflow agentico.
-- `git pull` di `main` prima di iniziare e prima di aprire la PR. Vietato
-  `git push --force` su branch condivisi.
+- Prima di iniziare un task, parti da `main` aggiornato: `git checkout main`,
+  `git pull`, poi crea il branch.
+- Per portare le novità di `main` nel tuo branch:
+  - **branch già pubblicato** (dopo il primo push): `git fetch origin` e
+    `git merge origin/main`, poi `git push`. Non serve riscrivere la storia;
+  - **branch mai pubblicato**: puoi usare `git pull --rebase origin main`, solo
+    prima del primo push.
+- Fallo almeno prima di aprire la PR e ogni volta che GitHub segnala conflitti.
+  Vietato `git push --force` su branch condivisi.
 - PR piccole, indicativamente sotto le 400 righe modificate, con `Closes #N`, il
   caso d'uso di riferimento e le istruzioni per provarla.
 - Prima di modificare file condivisi (model, tipi comuni, layout generale)
@@ -124,7 +139,8 @@ Mai committare `.env*` o token. Usa dati fittizi in esempi e fixture.
 - Prima del merge servono test eseguiti e revisione umana della PR da parte di
   un code owner diverso dall'autore.
 - Lingua: documentazione, commenti di revisione e messaggi di PR in italiano.
-  Identificatori nel codice in italiano, con i nomi del class diagram e del RAD
-  (es. `PianoStimolazione`, `salvaAvanzamento`, `InserisciUtenteForm`). Restano
-  in inglese solo i nomi imposti da framework e librerie (`GET`, `route.ts`,
-  `page.tsx`, `props`).
+  Funzioni e classi scritte da noi in italiano, con i nomi del class diagram e
+  del RAD (es. `PianoStimolazione`, `salvaAvanzamento`, `InserisciUtenteForm`).
+  Restano in inglese i nomi imposti da framework e librerie (`GET`, `props`,
+  `useState`) e i componenti installati tramite libreria. I nomi dei file sono
+  liberi (vedi Convenzioni di codice).
