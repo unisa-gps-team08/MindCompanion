@@ -23,11 +23,27 @@ composizioni sono incorporate nel documento del contenitore.
 | `pianiAlimentari` | PianoAlimentare | Pasto | `paziente` (al massimo un piano) |
 | `centri` | Centro | Attivita | `amministratore` |
 
-I campi con dati sanitari (risposte dei questionari, punteggio e risposte delle
-sessioni, raccomandazioni e alimenti dei piani alimentari) non hanno un tipo
-fisso nello schema: li scrive cifrati il Servizio Crittografia, il cui formato
-non è ancora stato deciso. Per lo stesso motivo il seed non contiene ancora
-questionari, sessioni e piani alimentari.
+Le associazioni del paziente con medico, nutrizionista e tutori stanno nel
+documento del paziente, come nel class diagram: `medico` e `nutrizionista`
+ammettono un solo riferimento, quindi la coppia paziente–figura non può
+ripetersi. Per `tutori`, RF_AD_8 aggiunge i riferimenti senza duplicati
+(`$addToSet`).
+
+## Dati sanitari cifrati
+
+Il Servizio Crittografia (`src/db/crittografia.ts`) cifra i dati sanitari con
+AES-256-GCM e li salva come `enc:v1:` seguito dai dati in base64.
+
+- Nello schema, `campiCifrati` elenca i campi sanitari di una collezione. Il
+  validatore accetta solo valori con il prefisso `enc:v1:`, quindi un dato in
+  chiaro viene rifiutato dal database.
+- Nel seed i campi sanitari si scrivono in chiaro: `applica.mjs` li cifra prima
+  di inserirli.
+- La chiave è `CHIAVE_CIFRATURA` (32 byte in base64), obbligatoria in
+  produzione. In sviluppo, se manca, app e seed usano la stessa chiave derivata
+  fissa: non serve configurare niente.
+- Per ora sono cifrati i campi di `pianiAlimentari`. Questionari e sessioni si
+  aggiungono, con `campiCifrati`, quando vengono implementati.
 
 ## Come si aggiorna il database
 
@@ -39,7 +55,7 @@ riavviare i servizi.
 | --- | --- | --- |
 | Riapplicare schema e seed con i servizi accesi | `docker compose run --rm db-setup` | Aggiorna validatori e indici e riporta i documenti del seed alla versione dei file. Gli altri dati locali restano. |
 | Ripartire da zero | `docker compose run --rm db-setup node src/db/setup/applica.mjs --reset` | Cancella tutto il database locale, poi applica schema e seed. |
-| Fuori da Docker | `pnpm db:setup` oppure `pnpm db:reset` | Come sopra, sul database di `MONGODB_URI` in `.env.local`. |
+| Fuori da Docker | `pnpm db:seed` (o `pnpm db:setup`), oppure `pnpm db:reset` | Come sopra, sul database di `MONGODB_URI` in `.env.local`. |
 
 ## Utenti del seed
 
@@ -54,8 +70,9 @@ Tutti hanno la password fittizia `mindcompanion`, valida solo in locale.
 | `paziente@mindcompanion.test` | PAZIENTE, associato a medico, nutrizionista e tutore |
 | `paziente2@mindcompanion.test` | PAZIENTE, senza associazioni |
 
-Il seed contiene anche un piano di stimolazione attivo per il primo paziente e
-il centro "Il Girasole" di Nocera Inferiore con due attività.
+Il seed contiene anche, per il primo paziente, un piano di stimolazione attivo e
+un piano alimentare con cinque pasti, e il centro "Il Girasole" di Nocera
+Inferiore con due attività.
 
 ## Regole
 
@@ -65,6 +82,6 @@ il centro "Il Girasole" di Nocera Inferiore con due attività.
   si modificano insieme, nella stessa PR, e seguono il class diagram.
 - Gli `_id` del seed sono fissi, così i riferimenti tra documenti (es.
   `medico` del paziente) restano validi per tutti. Non cambiarli.
-- I dati sanitari vanno nel seed già nel formato in cui l'app li salva, cioè
-  cifrati: concordate il formato con chi implementa il Servizio Crittografia.
+- I dati sanitari si scrivono in chiaro nel seed e si elencano in
+  `campiCifrati` dello schema: li cifra lo script.
 - Solo dati fittizi: e-mail su dominio `.test`, codici fiscali inventati.

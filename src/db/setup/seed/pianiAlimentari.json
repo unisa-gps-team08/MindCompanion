@@ -1,0 +1,46 @@
+{
+  "collezione": "pianiAlimentari",
+  "nota": "I campi sanitari sono scritti in chiaro qui e vengono cifrati da applica.mjs prima dell'inserimento (campiCifrati dello schema).",
+  "documenti": [
+    {
+      "_id": { "$oid": "665000000000000000000301" },
+      "paziente": { "$oid": "665000000000000000000005" },
+      "dataCreazione": { "$date": "2026-11-10T09:00:00Z" },
+      "dataUltimaModifica": null,
+      "raccomandazioniIdriche": "Almeno 1,5 litri di acqua al giorno, a piccoli sorsi e anche senza sete.",
+      "raccomandazioniNutrizionali": "Dieta mediterranea, pesce due volte a settimana, pochi zuccheri semplici.",
+      "pasti": [
+        {
+          "giorno": "LUNEDI",
+          "tipo": "COLAZIONE",
+          "alimenti": ["Latte parzialmente scremato", "Fette biscottate integrali", "Marmellata senza zucchero"],
+          "porzioni": ["200 ml", "4 fette", "1 cucchiaino"]
+        },
+        {
+          "giorno": "LUNEDI",
+          "tipo": "PRANZO",
+          "alimenti": ["Pasta integrale al pomodoro", "Zucchine al vapore", "Mela"],
+          "porzioni": ["70 g", "150 g", "1 frutto"]
+        },
+        {
+          "giorno": "LUNEDI",
+          "tipo": "CENA",
+          "alimenti": ["Merluzzo al forno", "Purè di patate", "Pane integrale"],
+          "porzioni": ["150 g", "100 g", "40 g"]
+        },
+        {
+          "giorno": "MARTEDI",
+          "tipo": "COLAZIONE",
+          "alimenti": ["Yogurt bianco", "Noci"],
+          "porzioni": ["125 g", "15 g"]
+        },
+        {
+          "giorno": "MARTEDI",
+          "tipo": "SPUNTINO",
+          "alimenti": ["Pera"],
+          "porzioni": ["1 frutto"]
+        }
+      ]
+    }
+  ]
+}
