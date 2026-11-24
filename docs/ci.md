@@ -19,12 +19,18 @@ Sulle pull request il controllo delle dipendenze fa parte del job `build`.
 
 | Controllo | Come farlo passare |
 | --- | --- |
-| **Gitleaks** analizza i commit introdotti dalla PR e maschera i valori rilevati nei log. | Conserva password, token e chiavi nei secret di GitHub Actions o nella configurazione locale esclusa da Git. Se una credenziale reale è già in un commit, revocala o ruotala e concorda con il team la rimozione dalla cronologia della PR. Un commit successivo che la cancella lascia visibile il commit che l'ha introdotta. |
+| **Gitleaks** analizza i commit introdotti dalla PR e maschera i valori rilevati nei log. | Conserva password, token e chiavi nei secret di GitHub Actions o nella configurazione locale esclusa da Git. Se Gitleaks trova una credenziale reale, segui la [procedura per le credenziali esposte](#credenziali-esposte). |
 | **Controlli Git e Python** verificano il diff e la sintassi dello script di supporto ai workflow. | Correggi gli errori riportati da `git diff --check` e, se hai toccato `agent_workflow.py`, verifica che si compili. |
 | **Semgrep** applica le regole OWASP ai sorgenti TypeScript (`.ts`, `.tsx`, `.mts` e `.cts`). Le segnalazioni fanno fallire il job. | Apri la regola, il file e la riga indicati nel log. Correggi il codice o discuti con il revisore perché la segnalazione è un falso positivo. |
 | **Audit delle dipendenze** controlla con `pnpm audit` le versioni registrate in `pnpm-lock.yaml` e fallisce per vulnerabilità alte o critiche. | Individua la dipendenza coinvolta, anche se transitiva. Concorda la modifica con il team, aggiorna il lockfile nella PR dedicata e ripeti audit, build e test. |
 | **Build Next.js** usa Node.js 24, installa le versioni del lockfile con `pnpm install --frozen-lockfile`, poi esegue `pnpm lint` e `pnpm build`, che include il controllo TypeScript. | Tieni `package.json` e `pnpm-lock.yaml` allineati. Risolvi gli errori di lint, di tipo, di import o di compilazione riportati nel log. |
 | **Test di integrazione** avvia la build di produzione di Next.js con un MongoDB 8.0 temporaneo. Verifica che `GET /api/health` restituisca HTTP `200` e `{"status":"ok"}`. | Assicurati che `MONGODB_URI` punti all'istanza di test e che l'endpoint raggiunga MongoDB prima di rispondere. Usa dati fittizi nel database di test. |
+
+## Credenziali esposte
+
+GitHub Secret scanning cerca le credenziali supportate nella cronologia del repository. Gli utenti autorizzati possono consultare gli avvisi in [**Security and quality → Secret scanning**](https://github.com/unisa-gps-team08/MindCompanion/security/secret-scanning).
+
+Se uno dei controlli rileva una credenziale reale, revocala o ruotala subito. Rimuovila dal codice e concorda con il team eventuali interventi sulla cronologia. Un commit che la cancella lascia visibile il commit che l'ha introdotta. Dopo la correzione, chiudi l'eventuale avviso in GitHub indicando il motivo. [Gestione degli avvisi di GitHub](https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-secret-scanning-alerts/resolving-alerts)
 
 ## Prima di aprire una pull request
 
