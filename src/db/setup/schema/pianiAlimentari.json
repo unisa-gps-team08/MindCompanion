@@ -1,6 +1,7 @@
 {
   "collezione": "pianiAlimentari",
-  "descrizione": "PianoAlimentare con Pasto (1..*) incorporato: al massimo un piano per paziente (associazione segue 0..1).",
+  "descrizione": "PianoAlimentare con Pasto (1..*) incorporato: al massimo un piano per paziente (associazione segue 0..1). I campi sanitari accettano solo valori cifrati (prefisso enc:v1:).",
+  "campiCifrati": ["raccomandazioniIdriche", "raccomandazioniNutrizionali", "pasti.alimenti", "pasti.porzioni"],
   "validatore": {
     "$jsonSchema": {
       "bsonType": "object",
@@ -9,8 +10,16 @@
         "paziente": { "bsonType": "objectId" },
         "dataCreazione": { "bsonType": "date" },
         "dataUltimaModifica": { "bsonType": ["date", "null"] },
-        "raccomandazioniIdriche": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." },
-        "raccomandazioniNutrizionali": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." },
+        "raccomandazioniIdriche": {
+          "bsonType": "string",
+          "pattern": "^enc:v1:",
+          "description": "Dato sanitario cifrato con AES-256."
+        },
+        "raccomandazioniNutrizionali": {
+          "bsonType": "string",
+          "pattern": "^enc:v1:",
+          "description": "Dato sanitario cifrato con AES-256."
+        },
         "pasti": {
           "bsonType": "array",
           "minItems": 1,
@@ -20,8 +29,16 @@
             "properties": {
               "giorno": { "enum": ["LUNEDI", "MARTEDI", "MERCOLEDI", "GIOVEDI", "VENERDI", "SABATO", "DOMENICA"] },
               "tipo": { "enum": ["COLAZIONE", "PRANZO", "CENA", "SPUNTINO"] },
-              "alimenti": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." },
-              "porzioni": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." }
+              "alimenti": {
+                "bsonType": "array",
+                "items": { "bsonType": "string", "pattern": "^enc:v1:" },
+                "description": "Dati sanitari cifrati con AES-256."
+              },
+              "porzioni": {
+                "bsonType": "array",
+                "items": { "bsonType": "string", "pattern": "^enc:v1:" },
+                "description": "Dati sanitari cifrati con AES-256."
+              }
             }
           }
         }

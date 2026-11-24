@@ -1,0 +1,67 @@
+import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import { cifra, decifra } from "@/db/crittografia";
+
+export const GIORNI_SETTIMANA = [
+  "LUNEDI",
+  "MARTEDI",
+  "MERCOLEDI",
+  "GIOVEDI",
+  "VENERDI",
+  "SABATO",
+  "DOMENICA",
+] as const;
+export const TIPI_PASTO = ["COLAZIONE", "PRANZO", "CENA", "SPUNTINO"] as const;
+
+// Setter e getter dei campi sanitari: si cifra in scrittura e si decifra in lettura (RNF_FUN_4).
+// Gli array vanno sempre assegnati per intero: un push() salterebbe il setter
+// e il validatore del database rifiuterebbe il documento.
+function cifraTesto(valore: string | null | undefined) {
+  return valore == null ? valore : cifra(valore);
+}
+function decifraTesto(valore: string | null | undefined) {
+  return valore == null ? valore : decifra(valore);
+}
+function cifraLista(valori: string[] | null | undefined) {
+  return valori == null ? valori : valori.map(cifra);
+}
+function decifraLista(valori: string[] | null | undefined) {
+  return valori == null ? valori : Array.from(valori, decifra);
+}
+
+const OPZIONI_GETTER = { toJSON: { getters: true }, toObject: { getters: true } };
+
+/** Pasto: composizione di PianoAlimentare, incorporato nel documento del piano. */
+const pastoSchema = new Schema(
+  {
+    giorno: { type: String, enum: GIORNI_SETTIMANA, required: true },
+    tipo: { type: String, enum: TIPI_PASTO, required: true },
+    alimenti: { type: [String], set: cifraLista, get: decifraLista },
+    porzioni: { type: [String], set: cifraLista, get: decifraLista },
+  },
+  { _id: false, ...OPZIONI_GETTER },
+);
+
+const pianoAlimentareSchema = new Schema(
+  {
+    // unique: al massimo un piano alimentare per paziente (associazione segue 0..1).
+    paziente: { type: Schema.Types.ObjectId, ref: "Paziente", required: true, unique: true },
+    dataCreazione: { type: Date, required: true, default: Date.now },
+    dataUltimaModifica: { type: Date, default: null },
+    raccomandazioniIdriche: { type: String, set: cifraTesto, get: decifraTesto },
+    raccomandazioniNutrizionali: { type: String, set: cifraTesto, get: decifraTesto },
+    pasti: {
+      type: [pastoSchema],
+      validate: {
+        validator: (pasti: unknown[]) => pasti.length > 0,
+        message: "Il piano alimentare deve contenere almeno un pasto.",
+      },
+    },
+  },
+  { collection: "pianiAlimentari", ...OPZIONI_GETTER },
+);
+
+export type PianoAlimentare = InferSchemaType<typeof pianoAlimentareSchema>;
+
+export const PianoAlimentare =
+  (models.PianoAlimentare as Model<PianoAlimentare>) ??
+  model<PianoAlimentare>("PianoAlimentare", pianoAlimentareSchema);

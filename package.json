@@ -9,6 +9,7 @@
     "test:integration": "node --test tests/integration/health.test.mjs",
     "lint": "eslint",
     "db:setup": "node src/db/setup/applica.mjs",
+    "db:seed": "node src/db/setup/applica.mjs",
     "db:reset": "node src/db/setup/applica.mjs --reset"
   },
   "dependencies": {
