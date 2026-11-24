@@ -1,0 +1,32 @@
+{
+  "collezione": "utenti",
+  "descrizione": "Utente, Medico e Paziente del class diagram ristrutturato (SDD 4.2), distinti dal campo ruolo.",
+  "validatore": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "required": ["nome", "cognome", "codiceFiscale", "email", "dataNascita", "passwordHash", "ruolo"],
+      "properties": {
+        "nome": { "bsonType": "string", "minLength": 1 },
+        "cognome": { "bsonType": "string", "minLength": 1 },
+        "codiceFiscale": {
+          "bsonType": "string",
+          "pattern": "^[A-Z]{6}[0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$"
+        },
+        "email": { "bsonType": "string", "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" },
+        "dataNascita": { "bsonType": "date" },
+        "passwordHash": { "bsonType": "string", "minLength": 1 },
+        "ruolo": { "enum": ["NUTRIZIONISTA", "TUTORE", "AMMINISTRATORE", "MEDICO", "PAZIENTE"] },
+        "codiceMedico": { "bsonType": "string" },
+        "specializzazione": { "bsonType": "string" },
+        "livelloTesto": { "enum": ["NORMALE", "GRANDE", "MOLTO_GRANDE"] },
+        "medico": { "bsonType": ["objectId", "null"] },
+        "nutrizionista": { "bsonType": ["objectId", "null"] },
+        "tutori": { "bsonType": "array", "items": { "bsonType": "objectId" } }
+      }
+    }
+  },
+  "indici": [
+    { "chiavi": { "email": 1 }, "opzioni": { "unique": true } },
+    { "chiavi": { "codiceFiscale": 1 }, "opzioni": { "unique": true } }
+  ]
+}

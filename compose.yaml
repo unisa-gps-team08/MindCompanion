@@ -10,6 +10,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+      db-setup:
+        condition: service_completed_successfully
     networks:
       - default
       - database
@@ -42,6 +44,20 @@ services:
           path: package.json
         - action: rebuild
           path: pnpm-lock.yaml
+
+  # Applica schema e seed condivisi (src/db/setup) a ogni avvio, prima di web.
+  db-setup:
+    build: .
+    init: true
+    command: ["node", "src/db/setup/applica.mjs"]
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/mindcompanion
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - database
+    restart: "no"
 
   mongodb:
     image: mongo:8.0

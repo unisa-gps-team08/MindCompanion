@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "test:integration": "node --test tests/integration/health.test.mjs",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:setup": "node src/db/setup/applica.mjs",
+    "db:reset": "node src/db/setup/applica.mjs --reset"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
