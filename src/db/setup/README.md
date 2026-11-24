@@ -22,6 +22,7 @@ composizioni sono incorporate nel documento del contenitore.
 | `questionari` | Questionario (campo `tipo`) | domande | `autore`, `paziente`, `destinatari` |
 | `pianiAlimentari` | PianoAlimentare | Pasto | `paziente` (al massimo un piano) |
 | `centri` | Centro | Attivita | `amministratore` |
+| `sessioniAccesso` | SessioneAccesso (tecnica, per il login) | — | `utente` |
 
 I campi con dati sanitari (risposte dei questionari, punteggio e risposte delle
 sessioni, raccomandazioni e alimenti dei piani alimentari) non hanno un tipo

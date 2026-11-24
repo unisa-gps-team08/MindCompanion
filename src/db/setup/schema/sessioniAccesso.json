@@ -1,0 +1,19 @@
+{
+  "collezione": "sessioniAccesso",
+  "descrizione": "SessioneAccesso: entity tecnica del login (RF_UE_1), non presente nel class diagram. Le sessioni scadute vengono cancellate da MongoDB tramite indice TTL.",
+  "validatore": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "required": ["tokenHash", "utente", "scadenza"],
+      "properties": {
+        "tokenHash": { "bsonType": "string", "minLength": 1 },
+        "utente": { "bsonType": "objectId" },
+        "scadenza": { "bsonType": "date" }
+      }
+    }
+  },
+  "indici": [
+    { "chiavi": { "tokenHash": 1 }, "opzioni": { "unique": true } },
+    { "chiavi": { "scadenza": 1 }, "opzioni": { "expireAfterSeconds": 0 } }
+  ]
+}
