@@ -11,7 +11,7 @@ importa e non contiene regole proprie.
   senza una PR di dipendenze.
 - Codice applicativo in `src/` (`src/app/` per route e layout), asset statici
   in `public/`. Alias import: `@/*` → `src/*`.
-- Node.js 24, la versione usata da CI e `Dockerfile`.
+- Node.js 20 o superiore.
 
 ## Comandi
 
@@ -21,11 +21,10 @@ importa e non contiene regole proprie.
 | `pnpm dev`   | Server di sviluppo su `localhost:3000` |
 | `pnpm build` | Build di produzione (controlla anche i tipi) |
 | `pnpm lint`  | ESLint                             |
-| `pnpm test:integration` | Test di integrazione con `node --test` (dopo `pnpm build`, con `MONGODB_URI` verso un database di test) |
 
 Un task è chiuso solo se `pnpm lint` e `pnpm build` passano.
-Per i test unitari non è ancora stato scelto un test runner: serve una decisione
-del team. Finché manca, non aggiungerne uno di tua iniziativa.
+Il test runner non è ancora stato scelto: serve una decisione del team (vedi
+sotto). Finché manca, non aggiungerne uno di tua iniziativa.
 
 ## Commit
 
@@ -65,8 +64,8 @@ e workflow (`.github/`). Segui l'architettura approvata dal team.
 
 - Architettura stratificata chiusa dell'SDD: View (`src/app/**/page.tsx`,
   `src/components/`) → Controller (`src/app/api/`) → Model (`src/db/models/`)
-  → MongoDB. La View non importa model né `@/db/connect`. Le route chiamano
-  `connectDB()` prima di usare un model, ma solo il Model esegue query.
+  → MongoDB. La View non importa model né `@/db/connect`; solo il Model accede
+  al database.
 - Il controllo del ruolo avviene sempre lato server, nella route. Nascondere un
   pulsante nella View non basta.
 - I dati sanitari si cifrano con AES-256 solo tramite il servizio di
@@ -135,6 +134,8 @@ Mai committare `.env*` o token. Usa dati fittizi in esempi e fixture.
 
 - La CI esegue `.github/scripts/verify-project` (script Bash dalla radice:
   `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm build`, poi i test quando esistono).
+  **Lo script non esiste ancora**: il team deve aggiungerlo, finché manca la CI
+  fallisce sulle PR dell'agente (`agent/issue-*`).
 - Prima del merge servono test eseguiti e revisione umana della PR da parte di
   un code owner diverso dall'autore.
 - Lingua: documentazione, commenti di revisione e messaggi di PR in italiano.
