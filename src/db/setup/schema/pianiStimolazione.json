@@ -1,0 +1,19 @@
+{
+  "collezione": "pianiStimolazione",
+  "descrizione": "PianoStimolazione: al massimo un piano per paziente (associazione possiede 0..1).",
+  "validatore": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "required": ["paziente", "stato", "livelloDifficolta", "numeroEsercizi", "dataCreazione"],
+      "properties": {
+        "paziente": { "bsonType": "objectId" },
+        "stato": { "enum": ["ATTIVO", "SOSPESO"] },
+        "livelloDifficolta": { "bsonType": "number", "minimum": 1, "maximum": 5 },
+        "numeroEsercizi": { "bsonType": "number", "minimum": 5, "maximum": 20 },
+        "dataCreazione": { "bsonType": "date" },
+        "dataUltimaRevisione": { "bsonType": ["date", "null"] }
+      }
+    }
+  },
+  "indici": [{ "chiavi": { "paziente": 1 }, "opzioni": { "unique": true } }]
+}

@@ -1,0 +1,38 @@
+{
+  "collezione": "sessioniStimolazione",
+  "descrizione": "SessioneStimolazione con Esercizio (5..20) e RispostaEsercizio incorporati. Restano legate al paziente anche se il piano viene eliminato (RF_MD_10): piano diventa null.",
+  "validatore": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "required": ["paziente", "data", "stato", "livelloDifficolta", "esercizi"],
+      "properties": {
+        "paziente": { "bsonType": "objectId" },
+        "piano": { "bsonType": ["objectId", "null"] },
+        "data": { "bsonType": "date" },
+        "stato": { "enum": ["IN_SVOLGIMENTO", "SOSPESA", "COMPLETATA", "INTERROTTA"] },
+        "punteggio": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." },
+        "livelloDifficolta": { "bsonType": "number", "minimum": 1, "maximum": 5 },
+        "esercizi": {
+          "bsonType": "array",
+          "maxItems": 20,
+          "items": {
+            "bsonType": "object",
+            "required": ["area", "livelloDifficolta", "quesito", "opzioniRisposta", "rispostaCorretta"],
+            "properties": {
+              "area": { "enum": ["MEMORIA", "ATTENZIONE", "LINGUAGGIO"] },
+              "livelloDifficolta": { "bsonType": "number", "minimum": 1, "maximum": 5 },
+              "quesito": { "bsonType": "string" },
+              "opzioniRisposta": { "bsonType": "array", "items": { "bsonType": "string" } },
+              "rispostaCorretta": { "bsonType": "string" },
+              "risposte": {
+                "bsonType": "array",
+                "description": "RispostaEsercizio: dati sanitari, cifrati con AES-256 dal Servizio Crittografia."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "indici": [{ "chiavi": { "paziente": 1, "data": -1 } }]
+}

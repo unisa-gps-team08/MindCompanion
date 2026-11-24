@@ -1,0 +1,14 @@
+{
+  "collezione": "pianiStimolazione",
+  "documenti": [
+    {
+      "_id": { "$oid": "665000000000000000000101" },
+      "paziente": { "$oid": "665000000000000000000005" },
+      "stato": "ATTIVO",
+      "livelloDifficolta": 2,
+      "numeroEsercizi": 10,
+      "dataCreazione": { "$date": "2026-11-02T09:00:00Z" },
+      "dataUltimaRevisione": null
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "collezione": "centri",
+  "documenti": [
+    {
+      "_id": { "$oid": "665000000000000000000201" },
+      "nome": "Centro diurno Il Girasole",
+      "indirizzo": "Via delle Rose 10",
+      "comune": "Nocera Inferiore",
+      "provincia": "SA",
+      "regione": "Campania",
+      "telefono": "089 000 0001",
+      "email": "info@girasole.test",
+      "fonte": "Sito ufficiale ASL Salerno",
+      "dataUltimaVerifica": { "$date": "2026-11-20T00:00:00Z" },
+      "amministratore": { "$oid": "665000000000000000000001" },
+      "attivita": [
+        {
+          "nome": "Laboratorio di memoria",
+          "tipo": "SOCIALE",
+          "descrizione": "Incontri di gruppo con esercizi di memoria e conversazione.",
+          "dataInizio": { "$date": "2026-12-15T00:00:00Z" },
+          "dataFine": null
+        },
+        {
+          "nome": "Ginnastica dolce",
+          "tipo": "FISICA",
+          "descrizione": "Attività motoria leggera, due volte a settimana.",
+          "dataInizio": null,
+          "dataFine": null
+        }
+      ]
+    }
+  ]
+}

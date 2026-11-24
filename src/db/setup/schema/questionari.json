@@ -1,0 +1,44 @@
+{
+  "collezione": "questionari",
+  "descrizione": "Questionario informativo e alimentare, distinti dal campo tipo (SDD 4.2). Le domande sono sotto-documenti con testo, obbligatoria e opzioni.",
+  "validatore": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "required": ["tipo", "stato", "domande", "dataCreazione", "autore", "paziente"],
+      "properties": {
+        "tipo": { "enum": ["QUESTIONARIO_INFORMATIVO", "QUESTIONARIO_ALIMENTARE"] },
+        "stato": { "enum": ["CREATO", "DA_COMPLETARE", "COMPLETATO"] },
+        "domande": {
+          "bsonType": "array",
+          "minItems": 1,
+          "items": {
+            "bsonType": "object",
+            "required": ["testo", "obbligatoria"],
+            "properties": {
+              "testo": { "bsonType": "string", "minLength": 1 },
+              "obbligatoria": { "bsonType": "bool" },
+              "opzioni": { "bsonType": "array", "items": { "bsonType": "string" } }
+            }
+          }
+        },
+        "risposte": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." },
+        "bozzaRisposte": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." },
+        "nota": { "description": "Dato sanitario: cifrato con AES-256 dal Servizio Crittografia." },
+        "dataCreazione": { "bsonType": "date" },
+        "dataInvio": { "bsonType": ["date", "null"] },
+        "dataCompletamento": { "bsonType": ["date", "null"] },
+        "autore": { "bsonType": "objectId", "description": "Medico (informativo) o Nutrizionista (alimentare) che lo crea." },
+        "paziente": { "bsonType": "objectId", "description": "Paziente a cui si riferisce (riguarda)." },
+        "destinatari": {
+          "bsonType": "array",
+          "items": { "bsonType": "objectId" },
+          "description": "Tutori associati o, se non ci sono, il paziente stesso (RF_MD_9, RF_NT_3)."
+        }
+      }
+    }
+  },
+  "indici": [
+    { "chiavi": { "paziente": 1, "tipo": 1 } },
+    { "chiavi": { "destinatari": 1, "stato": 1 } }
+  ]
+}
