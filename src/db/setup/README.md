@@ -22,6 +22,7 @@ composizioni sono incorporate nel documento del contenitore.
 | `questionari` | Questionario (campo `tipo`) | domande | `autore`, `paziente`, `destinatari` |
 | `pianiAlimentari` | PianoAlimentare | Pasto | `paziente` (al massimo un piano) |
 | `centri` | Centro | Attivita | `amministratore` |
+| `sessioniAccesso` | SessioneAccesso (tecnica, per il login) | — | `utente` |
 
 Le associazioni del paziente con medico, nutrizionista e tutori stanno nel
 documento del paziente, come nel class diagram: `medico` e `nutrizionista`
