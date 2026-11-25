@@ -105,10 +105,11 @@ export function LayoutAreaRiservata({ children }: LayoutAreaRiservataProps) {
 
   return (
     <TooltipProvider>
-      <SidebarProvider>
+      {/* In stampa resta solo il contenuto della pagina, es. il foglio delle credenziali (RF_AD_12). */}
+      <SidebarProvider className="print:[&_[data-slot=sidebar]]:hidden">
         <SidebarApplicazione utente={utente} inCaricamento={inCaricamento} />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+          <header className="flex h-16 print:hidden shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
             <SidebarTrigger
               className={cn("-ml-1", modalitaPaziente && "size-10")}
               aria-label="Apri o chiudi menu di navigazione"
