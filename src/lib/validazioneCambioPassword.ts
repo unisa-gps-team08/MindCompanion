@@ -29,7 +29,12 @@ export function validaCambioPassword(dati: unknown): EsitoValidazioneCambioPassw
   };
   const errori: ErroriCambioPassword = {};
 
-  if (!valori.passwordAttuale) errori.passwordAttuale = "Inserisci la password attuale.";
+  if (!valori.passwordAttuale) {
+    errori.passwordAttuale = "Inserisci la password attuale.";
+  } else if (valori.passwordAttuale.length > LUNGHEZZA_MASSIMA_PASSWORD) {
+    // Nessuna password valida supera il limite: si evita di calcolare l'hash di testi enormi.
+    errori.passwordAttuale = "La password attuale non è corretta.";
+  }
   if (
     valori.nuovaPassword.length < LUNGHEZZA_MINIMA_PASSWORD ||
     valori.nuovaPassword.length > LUNGHEZZA_MASSIMA_PASSWORD

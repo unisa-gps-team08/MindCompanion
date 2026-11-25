@@ -52,6 +52,8 @@ export async function verificaCredenziali(email: string, password: string): Prom
 
 /**
  * cambiaPassword(passwordAttuale, nuovaPassword) del class diagram (RF_UE_3, RF_UE_4).
+ * Come gli altri metodi di questo model è una funzione del modulo: utenteId indica
+ * l'Utente su cui il diagramma chiama il metodo.
  * Restituisce false se la password attuale non è corretta. Dopo il cambio la password
  * non è più temporanea.
  */

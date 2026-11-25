@@ -2,6 +2,7 @@ import { connectDB } from "@/db/connect";
 import { cambiaPassword, RUOLI } from "@/db/models/Utente";
 import { getAreaRuolo } from "@/lib/aree";
 import { richiediRuolo } from "@/lib/autorizzazione";
+import { eliminaAltreSessioni } from "@/lib/sessione";
 import { validaCambioPassword } from "@/lib/validazioneCambioPassword";
 
 // CambiaPasswordControl (RF_UE_3, RF_UE_4): ogni utente autenticato cambia solo la propria password.
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    await eliminaAltreSessioni(utente._id.toString());
     return Response.json({ area: getAreaRuolo(utente.ruolo) });
   } catch {
     return Response.json({ errore: "Servizio non disponibile, riprova più tardi." }, { status: 503 });
