@@ -2,8 +2,6 @@ import type { Ruolo } from "@/db/models/Utente";
 
 // Ruoli che l'amministratore può assegnare (RF_AD_1): l'amministratore non si registra dal form.
 export const RUOLI_REGISTRABILI = ["PAZIENTE", "MEDICO", "NUTRIZIONISTA", "TUTORE"] as const satisfies readonly Ruolo[];
-export const LUNGHEZZA_MINIMA_PASSWORD = 8;
-const LUNGHEZZA_MASSIMA_PASSWORD = 128;
 
 const REGEX_EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 // Stesso formato del validatore della collezione utenti (src/db/setup/schema/utenti.json).
@@ -17,7 +15,6 @@ export type NuovoUtente = {
   codiceFiscale: string;
   dataNascita: Date;
   ruolo: (typeof RUOLI_REGISTRABILI)[number];
-  password: string;
   codiceMedico?: string;
   specializzazione?: string;
 };
@@ -47,8 +44,6 @@ export function validaNuovoUtente(dati: unknown): EsitoValidazione {
   const codiceFiscale = testo(campi.codiceFiscale).toUpperCase();
   const dataNascita = new Date(testo(campi.dataNascita));
   const ruolo = testo(campi.ruolo);
-  // La password non si accorcia con trim: gli spazi fanno parte della password.
-  const password = typeof campi.password === "string" ? campi.password : "";
 
   if (!nome) errori.nome = "Inserisci il nome.";
   if (!cognome) errori.cognome = "Inserisci il cognome.";
@@ -58,9 +53,6 @@ export function validaNuovoUtente(dati: unknown): EsitoValidazione {
     errori.dataNascita = "Inserisci una data di nascita valida.";
   }
   if (!isRuoloRegistrabile(ruolo)) errori.ruolo = "Seleziona il ruolo dell'utente.";
-  if (password.length < LUNGHEZZA_MINIMA_PASSWORD || password.length > LUNGHEZZA_MASSIMA_PASSWORD) {
-    errori.password = `La password deve avere da ${LUNGHEZZA_MINIMA_PASSWORD} a ${LUNGHEZZA_MASSIMA_PASSWORD} caratteri.`;
-  }
 
   const codiceMedico = testo(campi.codiceMedico);
   const specializzazione = testo(campi.specializzazione);
@@ -82,7 +74,6 @@ export function validaNuovoUtente(dati: unknown): EsitoValidazione {
       codiceFiscale,
       dataNascita,
       ruolo,
-      password,
       ...(ruolo === "MEDICO" ? { codiceMedico, specializzazione } : {}),
     },
   };

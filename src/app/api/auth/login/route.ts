@@ -1,6 +1,6 @@
 import { connectDB } from "@/db/connect";
 import { autenticaUtente } from "@/db/models/Utente";
-import { getAreaRuolo } from "@/lib/aree";
+import { getAreaRuolo, PERCORSO_CAMBIA_PASSWORD } from "@/lib/aree";
 import { creaSessione } from "@/lib/sessione";
 
 // AutenticazioneControl, login (RF_UE_1).
@@ -22,7 +22,9 @@ export async function POST(request: Request) {
     }
 
     await creaSessione(utente._id.toString());
-    return Response.json({ ruolo: utente.ruolo, area: getAreaRuolo(utente.ruolo) });
+    // Con la password temporanea si va prima al cambio password (RF_UE_4).
+    const area = utente.passwordTemporanea ? PERCORSO_CAMBIA_PASSWORD : getAreaRuolo(utente.ruolo);
+    return Response.json({ ruolo: utente.ruolo, area });
   } catch {
     return Response.json({ errore: "Servizio non disponibile, riprova più tardi." }, { status: 503 });
   }

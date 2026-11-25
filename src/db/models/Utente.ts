@@ -1,5 +1,5 @@
 import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
-import { verificaPassword } from "@/db/password";
+import { calcolaHashPassword, verificaPassword } from "@/db/password";
 
 /** Ruoli del class diagram, più MEDICO e PAZIENTE per le sottoclassi Medico e Paziente. */
 export const RUOLI = ["NUTRIZIONISTA", "TUTORE", "AMMINISTRATORE", "MEDICO", "PAZIENTE"] as const;
@@ -22,6 +22,8 @@ const utenteSchema = new Schema(
     dataNascita: { type: Date, required: true },
     // Solo l'hash; select: false lo esclude da ogni ricerca.
     passwordHash: { type: String, required: true, select: false },
+    // true finché l'utente non sostituisce la password generata dal sistema (RF_UE_4).
+    passwordTemporanea: { type: Boolean, default: false },
     ruolo: { type: String, enum: RUOLI, required: true },
   },
   // Medico e Paziente sono salvati nella stessa collezione, distinti dal campo ruolo.
@@ -46,4 +48,23 @@ export async function autenticaUtente(email: string, password: string) {
 /** verificaCredenziali(email, password) del class diagram: true se l'utente esiste e la password è corretta. */
 export async function verificaCredenziali(email: string, password: string): Promise<boolean> {
   return (await autenticaUtente(email, password)) !== null;
+}
+
+/**
+ * cambiaPassword(passwordAttuale, nuovaPassword) del class diagram (RF_UE_3, RF_UE_4).
+ * Restituisce false se la password attuale non è corretta. Dopo il cambio la password
+ * non è più temporanea.
+ */
+export async function cambiaPassword(
+  utenteId: string,
+  passwordAttuale: string,
+  nuovaPassword: string,
+): Promise<boolean> {
+  const utente = await Utente.findById(utenteId).select("+passwordHash");
+  if (!utente || !(await verificaPassword(passwordAttuale, utente.passwordHash))) return false;
+
+  utente.passwordHash = await calcolaHashPassword(nuovaPassword);
+  utente.passwordTemporanea = false;
+  await utente.save();
+  return true;
 }
