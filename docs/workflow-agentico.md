@@ -80,10 +80,6 @@ che funzionano sia l'installazione dell'app sia l'accesso con l'abbonamento.
    code owner diverso dall'autore prima del merge. Autorizza l'esecuzione di
    Actions se GitHub lo richiede.
 
-Puoi chiedere chiarimenti con `@claude` in un commento all'issue. Su una PR
-interna al repository puoi chiedere a Claude di spiegare o correggere una
-modifica. Il workflow accetta le menzioni da membri con accesso Write.
-
 Aspetta che un run termini prima di avviare la fase successiva. Dopo una
 correzione, riapplica la label della fase o riporta la PR in bozza e rendila
 di nuovo pronta per ripetere la revisione. Se il branch
@@ -100,6 +96,27 @@ Con OAuth il consumo ricade sull'abbonamento associato al token.
 
 La [guida CI](ci.md) descrive i controlli di `ci.yml` sulle PR e sui push a
 `main` e il workflow separato `dependency-audit.yml` per l'audit giornaliero.
+
+## Menzioni nelle pull request
+
+Con accesso **Write**, puoi menzionare `@claude` in un commento su un'issue o
+su una PR interna, anche direttamente nel diff. Su una PR puoi chiedere una
+review, la spiegazione di una modifica o una correzione al suo branch.
+
+Prima di avviare Claude, [`agente.yml`](../.github/workflows/agente.yml) esegue
+[`prepara-contesto-claude.py`](../.github/scripts/prepara-contesto-claude.py).
+Lo script recupera fino a cinque issue dello stesso repository, dando priorità
+ai riferimenti `#N` nel commento e aggiungendo quelli presenti nelle clausole
+come `Closes #N` della descrizione della PR. Segnala le issue omesse,
+troncate o indisponibili.
+
+Lo script legge anche gli esiti di lint, build e test di integrazione
+dall'ultimo tentativo del run CI più recente associato alla stessa PR e al
+suo commit.
+Claude cita il run e distingue gli esiti disponibili dalle verifiche ancora
+in corso o mancanti. La menzione riusa gli esiti della CI esistente.
+I test attestano solo i comportamenti che coprono. Per i controlli eseguiti,
+consulta la [guida CI](ci.md#controlli-della-pull-request).
 
 ## Protezioni e tracciabilità
 
