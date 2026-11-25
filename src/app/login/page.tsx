@@ -17,21 +17,27 @@ export default function LoginPage() {
     setErrore("");
     setInCorso(true);
 
-    const risposta = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    // try/finally: anche se la rete cade il pulsante torna attivo e compare un messaggio.
+    try {
+      const risposta = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    setInCorso(false);
-    if (!risposta.ok) {
-      const dati = (await risposta.json().catch(() => ({}))) as { errore?: string };
-      setErrore(dati.errore ?? "Accesso non riuscito.");
-      return;
+      if (!risposta.ok) {
+        const dati = (await risposta.json().catch(() => ({}))) as { errore?: string };
+        setErrore(dati.errore ?? "Accesso non riuscito.");
+        return;
+      }
+      // Dopo il login si entra nell'area del proprio ruolo.
+      const { area } = (await risposta.json()) as { area: string };
+      router.push(area);
+    } catch {
+      setErrore("Servizio non raggiungibile, controlla la connessione e riprova.");
+    } finally {
+      setInCorso(false);
     }
-    // Dopo il login si entra nell'area del proprio ruolo.
-    const { area } = (await risposta.json()) as { area: string };
-    router.push(area);
   }
 
   return (
