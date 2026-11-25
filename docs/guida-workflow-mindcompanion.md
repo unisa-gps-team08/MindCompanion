@@ -134,6 +134,8 @@ Se GitHub blocca la creazione automatica della PR, cerca **Apri la PR in bozza**
 
 Un membro con accesso **Write** può menzionare `@claude` in un nuovo commento. Scorri fino a **Add a comment**, scrivi la richiesta e clicca su **Comment**. Su un’issue chiedi chiarimenti come «Confronta il piano con i frame TF-01 e TF-02 e indica cosa manca». Su una PR interna puoi chiedere una spiegazione del diff o una correzione circoscritta al branch. La risposta compare come `claude[bot]`. Verifica sempre il diff prodotto e riavvia l’eventuale fase necessaria attraverso la label o **Ready for review**. [Esempio reale di risposta](https://github.com/unisa-gps-team08/MindCompanion/issues/2#issuecomment-7038372849).
 
+Per chiedere una review su una PR, puoi scrivere «@claude Controlla lo stile e verifica i criteri della #18». Il workflow recupera il testo delle issue citate e gli esiti di lint, build e test già prodotti dalla CI per il commit della PR. Nel commento Claude può indicare cosa risulta dal diff, quali controlli sono passati e quali criteri richiedono ancora una prova funzionale. Se la CI è in corso, ripeti la menzione dopo che ha finito. [Dettagli del workflow](workflow-agentico.md#menzioni-nelle-pull-request)
+
 ![Issue di collaudo di MindCompanion. Il riquadro Add a comment contiene una menzione a Claude e mostra il pulsante verde Comment in basso a destra.](img-workflow-mindcompanion/github-scrivi-commento.png)
 
 *Come scrivere la richiesta.* Inserisci `@claude` nel testo e usa **Comment**. GitHub pubblica il commento nella conversazione dell’issue.
@@ -189,7 +191,8 @@ La configurazione è già presente su `main`. La GitHub App ufficiale di Claude 
 | --- | --- |
 | `piano.yml`, `implementa.yml`, `test.yml`, `revisione.yml` | Definiscono gli eventi, le condizioni, i permessi e i limiti delle singole fasi. |
 | `esegui-fase.yml` | Riusa i job che preparano il contesto, eseguono Claude, verificano le patch e pubblicano il risultato. |
-| `agente.yml`, `saluto.yml`, `oauth.yml` | Gestiscono le menzioni e le prove di configurazione. |
+| `agente.yml` | Gestisce le menzioni e prepara il contesto della review per Claude. |
+| `saluto.yml`, `oauth.yml` | Eseguono le prove di configurazione. |
 | `ci.yml`, `dependency-audit.yml` | Definiscono rispettivamente i [controlli di PR e push](ci.md#quando-parte) e l’[audit giornaliero su main](ci.md#audit-giornaliero-delle-dipendenze). |
 | `.github/scripts/agent_workflow.py` | Controlla ruolo del mittente, riferimenti del piano e ambito delle patch. Pubblica commenti, commit e PR. |
 | `AGENTS.md`, `CLAUDE.md`, `.claude/agents/` | Definiscono le regole del progetto e le istruzioni dei ruoli di test e revisione. |

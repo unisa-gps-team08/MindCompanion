@@ -107,7 +107,7 @@ successiva. Le issue libere sono disattivate: usa uno dei moduli.
 | Generare i test dei frame | Label `fase:test` sulla PR in bozza `agent/issue-N` | Il tester aggiunge nuovi file di test. Il commento **Test dei frame** riporta l'esito di `verify-project`. Esegui i nuovi test prima del merge. |
 | Avviare CI e revisione | **Ready for review** sulla PR | Partono la CI e **Agente revisore**, che commenta il commit esaminato. |
 | Ripetere la revisione | Riporta la PR in bozza, poi **Ready for review** | Nuovo commento del revisore sull'ultimo commit. |
-| Chiedere a Claude | Commento con `@claude` su un'issue o su una PR interna, anche inline nel diff | `claude[bot]` risponde. Su una PR può spiegare il diff o correggere il branch. |
+| Chiedere a Claude | Commento con `@claude` su un'issue o su una PR interna, anche inline nel diff | Nella review di una PR, Claude riceve le issue citate con `#N` e gli esiti CI disponibili per il commit. [Esempio di richiesta](docs/guida-workflow-mindcompanion.md#quando-usare-claude-e-copilot). |
 | Chiedere una revisione a Copilot | **Reviewers → Copilot → Request** sulla PR pronta | Revisione tecnica aggiuntiva, solo per account idonei. |
 | Approvare la PR | **Files changed → Review changes → Approve** | Serve un code owner diverso dall'autore. |
 | Unire la PR | **Squash and merge** con check `build` verde e approvazione | GitHub chiude l'issue collegata e la board la sposta in **Fatto**. |
