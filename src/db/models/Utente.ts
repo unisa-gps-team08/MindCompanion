@@ -33,9 +33,17 @@ export type Utente = InferSchemaType<typeof utenteSchema>;
 // models.Utente evita OverwriteModelError quando Next.js ricarica il modulo.
 export const Utente = (models.Utente as Model<Utente>) ?? model<Utente>("Utente", utenteSchema);
 
+/**
+ * Restituisce l'utente se e-mail e password sono corrette, altrimenti null.
+ * Usata dal login, che con una sola query verifica le credenziali e ottiene ruolo e id.
+ */
+export async function autenticaUtente(email: string, password: string) {
+  const utente = await Utente.findOne({ email: email.trim().toLowerCase() }).select("+passwordHash");
+  if (!utente || !(await verificaPassword(password, utente.passwordHash))) return null;
+  return utente;
+}
+
 /** verificaCredenziali(email, password) del class diagram: true se l'utente esiste e la password è corretta. */
 export async function verificaCredenziali(email: string, password: string): Promise<boolean> {
-  const utente = await Utente.findOne({ email: email.trim().toLowerCase() }).select("+passwordHash");
-  if (!utente) return false;
-  return verificaPassword(password, utente.passwordHash);
+  return (await autenticaUtente(email, password)) !== null;
 }

@@ -1,5 +1,5 @@
 import { connectDB } from "@/db/connect";
-import { Utente, verificaCredenziali } from "@/db/models/Utente";
+import { autenticaUtente } from "@/db/models/Utente";
 import { getAreaRuolo } from "@/lib/aree";
 import { creaSessione } from "@/lib/sessione";
 
@@ -16,11 +16,7 @@ export async function POST(request: Request) {
     await connectDB();
 
     // Stesso messaggio per e-mail e password errate: non si rivela quali e-mail esistono.
-    if (!(await verificaCredenziali(email, password))) {
-      return Response.json({ errore: "E-mail o password non corrette." }, { status: 401 });
-    }
-
-    const utente = await Utente.findOne({ email: email.trim().toLowerCase() });
+    const utente = await autenticaUtente(email, password);
     if (!utente) {
       return Response.json({ errore: "E-mail o password non corrette." }, { status: 401 });
     }
