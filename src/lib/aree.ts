@@ -11,6 +11,9 @@ export const AREA_PER_RUOLO: Record<Ruolo, string> = {
 
 const AREE = Object.values(AREA_PER_RUOLO);
 
+/** Pagina di CambiaPassword (RF_UE_3), obbligatoria al primo accesso (RF_UE_4). */
+export const PERCORSO_CAMBIA_PASSWORD = "/cambia-password";
+
 /** Area del ruolo indicato; per un ruolo sconosciuto si torna al login. */
 export function getAreaRuolo(ruolo: string): string {
   return AREA_PER_RUOLO[ruolo as Ruolo] ?? "/login";
