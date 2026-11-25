@@ -15,6 +15,7 @@
         "email": { "bsonType": "string", "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" },
         "dataNascita": { "bsonType": "date" },
         "passwordHash": { "bsonType": "string", "minLength": 1 },
+        "passwordTemporanea": { "bsonType": "bool" },
         "ruolo": { "enum": ["NUTRIZIONISTA", "TUTORE", "AMMINISTRATORE", "MEDICO", "PAZIENTE"] },
         "codiceMedico": { "bsonType": "string" },
         "specializzazione": { "bsonType": "string" },

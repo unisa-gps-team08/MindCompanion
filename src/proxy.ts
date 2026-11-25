@@ -1,11 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getAreaDelPercorso, getAreaRuolo } from "@/lib/aree";
+import { getAreaDelPercorso, getAreaRuolo, PERCORSO_CAMBIA_PASSWORD } from "@/lib/aree";
 import { getUtenteDaToken, NOME_COOKIE } from "@/lib/sessione";
 
 // Middleware di autenticazione (RF_UE_1, RNF_FUN_3): ogni richiesta, tranne
 // quelle pubbliche, deve avere una sessione valida. Il controllo del ruolo
 // sulle API resta nelle route, con richiediRuolo().
 const PERCORSI_PUBBLICI = new Set(["/login", "/api/auth/login", "/api/auth/logout", "/api/health"]);
+
+// Con la password temporanea sono raggiungibili solo il cambio password e il logout (RF_UE_4).
+const PERCORSI_CON_PASSWORD_TEMPORANEA = new Set([
+  PERCORSO_CAMBIA_PASSWORD,
+  "/api/auth/cambia-password",
+  "/api/auth/logout",
+  "/api/health",
+]);
 
 function vaiA(percorso: string, request: NextRequest) {
   return NextResponse.redirect(new URL(percorso, request.url));
@@ -31,6 +39,12 @@ export async function proxy(request: NextRequest) {
     return isApi
       ? Response.json({ errore: "Accesso richiesto." }, { status: 401 })
       : vaiA("/login", request);
+  }
+
+  if (utente.passwordTemporanea && !PERCORSI_CON_PASSWORD_TEMPORANEA.has(pathname)) {
+    return isApi
+      ? Response.json({ errore: "Cambia la password per continuare." }, { status: 403 })
+      : vaiA(PERCORSO_CAMBIA_PASSWORD, request);
   }
 
   const areaUtente = getAreaRuolo(utente.ruolo);

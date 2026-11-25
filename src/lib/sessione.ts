@@ -49,6 +49,20 @@ export async function getUtenteDaToken(token: string | undefined) {
   return Utente.findById(sessione.utente);
 }
 
+/**
+ * Chiude le altre sessioni dell'utente e lascia aperta quella corrente. Dopo un cambio
+ * password chi aveva usato le credenziali precedenti su un altro dispositivo deve rientrare.
+ */
+export async function eliminaAltreSessioni(utenteId: string): Promise<void> {
+  const token = (await cookies()).get(NOME_COOKIE)?.value;
+
+  await connectDB();
+  await SessioneAccesso.deleteMany({
+    utente: utenteId,
+    ...(token ? { tokenHash: { $ne: calcolaHashToken(token) } } : {}),
+  });
+}
+
 /** Chiude la sessione corrente: la elimina dal database e cancella il cookie. */
 export async function eliminaSessione(): Promise<void> {
   const archivioCookie = await cookies();

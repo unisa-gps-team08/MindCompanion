@@ -1,12 +1,9 @@
 "use client";
 
 import { useState, type FormEvent, type InputHTMLAttributes } from "react";
+import { CredenzialiDialog, type Credenziali } from "@/components/CredenzialiDialog";
 import { Button } from "@/components/ui/button";
-import {
-  LUNGHEZZA_MINIMA_PASSWORD,
-  RUOLI_REGISTRABILI,
-  type ErroriCampi,
-} from "@/lib/validazioneNuovoUtente";
+import { RUOLI_REGISTRABILI, type ErroriCampi } from "@/lib/validazioneNuovoUtente";
 
 const ETICHETTE_RUOLO: Record<(typeof RUOLI_REGISTRABILI)[number], string> = {
   PAZIENTE: "Paziente",
@@ -22,13 +19,12 @@ const VALORI_INIZIALI = {
   codiceFiscale: "",
   dataNascita: "",
   ruolo: "",
-  password: "",
   codiceMedico: "",
   specializzazione: "",
 };
 
 type NomeCampo = keyof typeof VALORI_INIZIALI;
-type Esito = { tipo: "successo" | "errore"; messaggio: string } | null;
+type Esito = { tipo: "errore"; messaggio: string } | null;
 
 type CampoProps = InputHTMLAttributes<HTMLInputElement> & {
   etichetta: string;
@@ -52,10 +48,12 @@ function Campo({ etichetta, nome, errore, ...input }: CampoProps) {
 }
 
 // InserisciUtenteForm (RF_AD_1): registrazione di un nuovo utente da parte dell'amministratore.
+// Non ha campi password: la password temporanea la genera il sistema.
 export function InserisciUtenteForm() {
   const [valori, setValori] = useState(VALORI_INIZIALI);
   const [errori, setErrori] = useState<ErroriCampi>({});
   const [esito, setEsito] = useState<Esito>(null);
+  const [credenziali, setCredenziali] = useState<Credenziali | null>(null);
   const [inCorso, setInCorso] = useState(false);
 
   function aggiorna(nome: NomeCampo, valore: string) {
@@ -83,24 +81,29 @@ export function InserisciUtenteForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(valori),
       });
-      const dati = (await risposta.json().catch(() => ({}))) as { errore?: string; campi?: ErroriCampi };
+      const dati = (await risposta.json().catch(() => ({}))) as {
+        errore?: string;
+        campi?: ErroriCampi;
+        email?: string;
+        passwordTemporanea?: string;
+      };
 
-      if (!risposta.ok) {
+      if (!risposta.ok || !dati.email || !dati.passwordTemporanea) {
         setErrori(dati.campi ?? {});
         setEsito({ tipo: "errore", messaggio: dati.errore ?? "Registrazione non riuscita." });
         return;
       }
       setValori(VALORI_INIZIALI);
-      setEsito({
-        tipo: "successo",
-        messaggio: "Utente registrato. Comunica all'utente l'e-mail e la password iniziale.",
-      });
+      setCredenziali({ email: dati.email, passwordTemporanea: dati.passwordTemporanea });
     } catch {
       setEsito({ tipo: "errore", messaggio: "Servizio non raggiungibile, controlla la connessione e riprova." });
     } finally {
       setInCorso(false);
     }
   }
+
+  // Chiudendo la finestra la password esce dallo stato e non è più recuperabile.
+  if (credenziali) return <CredenzialiDialog credenziali={credenziali} onChiudi={() => setCredenziali(null)} />;
 
   return (
     <form onSubmit={conferma} className="flex flex-col gap-4 text-lg">
@@ -147,22 +150,10 @@ export function InserisciUtenteForm() {
             <Campo etichetta="Specializzazione" required autoComplete="off" {...propsCampo("specializzazione")} />
           </>
         )}
-
-        <Campo
-          etichetta={`Password iniziale (almeno ${LUNGHEZZA_MINIMA_PASSWORD} caratteri)`}
-          type="password"
-          required
-          minLength={LUNGHEZZA_MINIMA_PASSWORD}
-          autoComplete="new-password"
-          {...propsCampo("password")}
-        />
       </div>
 
       {esito && (
-        <p
-          role={esito.tipo === "errore" ? "alert" : "status"}
-          className={esito.tipo === "errore" ? "text-red-700" : "text-green-800"}
-        >
+        <p role="alert" className="text-red-700">
           {esito.messaggio}
         </p>
       )}

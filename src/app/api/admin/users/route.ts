@@ -2,7 +2,7 @@ import { connectDB } from "@/db/connect";
 import { Medico } from "@/db/models/Medico";
 import { Paziente } from "@/db/models/Paziente";
 import { Utente } from "@/db/models/Utente";
-import { calcolaHashPassword } from "@/db/password";
+import { calcolaHashPassword, generaPasswordTemporanea } from "@/db/password";
 import { richiediRuolo } from "@/lib/autorizzazione";
 import { validaNuovoUtente, type ErroriCampi, type NuovoUtente } from "@/lib/validazioneNuovoUtente";
 
@@ -22,9 +22,13 @@ async function trovaDuplicati(email: string, codiceFiscale: string): Promise<Err
 }
 
 /** Salva l'utente con il model del suo ruolo: Medico e Paziente hanno campi propri. */
-async function salvaUtente(valori: NuovoUtente) {
-  const { password, codiceMedico, specializzazione, ...anagrafica } = valori;
-  const documento = { ...anagrafica, passwordHash: await calcolaHashPassword(password) };
+async function salvaUtente(valori: NuovoUtente, password: string) {
+  const { codiceMedico, specializzazione, ...anagrafica } = valori;
+  const documento = {
+    ...anagrafica,
+    passwordHash: await calcolaHashPassword(password),
+    passwordTemporanea: true,
+  };
 
   if (valori.ruolo === "MEDICO") return Medico.create({ ...documento, codiceMedico, specializzazione });
   if (valori.ruolo === "PAZIENTE") return Paziente.create(documento);
@@ -37,6 +41,8 @@ function isChiaveDuplicata(errore: unknown): boolean {
 }
 
 // InserisciUtenteControl (RF_AD_1): solo l'amministratore registra nuovi utenti (RNF_FUN_3).
+// La password temporanea è generata qui e restituita una sola volta, per l'esportazione
+// delle credenziali (RF_AD_12); nel database resta solo il suo hash.
 export async function POST(request: Request) {
   const { risposta } = await richiediRuolo("AMMINISTRATORE");
   if (risposta) return risposta;
@@ -53,8 +59,13 @@ export async function POST(request: Request) {
       return Response.json({ errore: MESSAGGIO_DUPLICATO, campi: duplicati }, { status: 409 });
     }
 
-    const utente = await salvaUtente(esito.valori);
-    return Response.json({ id: utente._id.toString() }, { status: 201 });
+    const passwordTemporanea = generaPasswordTemporanea();
+    const utente = await salvaUtente(esito.valori, passwordTemporanea);
+    return Response.json(
+      { id: utente._id.toString(), email: utente.email, passwordTemporanea },
+      // no-store: la risposta contiene la password in chiaro e non va salvata in cache.
+      { status: 201, headers: { "Cache-Control": "no-store" } },
+    );
   } catch (errore) {
     if (isChiaveDuplicata(errore)) {
       return Response.json({ errore: MESSAGGIO_DUPLICATO }, { status: 409 });
