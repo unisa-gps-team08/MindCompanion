@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { EliminaUtenteDialog } from "@/components/EliminaUtenteDialog";
+import { EliminaUtenteDialog } from "@/components/EliminaUtenteButton";
 import { LogoutButton } from "@/components/LogoutButton";
 import { ETICHETTE_RUOLO, TabellaUtenti } from "@/components/TabellaUtenti";
 import { ToastEsito, type DatiToast } from "@/components/ToastEsito";
