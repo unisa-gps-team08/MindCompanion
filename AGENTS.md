@@ -63,9 +63,10 @@ e workflow (`.github/`). Segui l'architettura approvata dal team.
 ## Architettura
 
 - Architettura stratificata chiusa dell'SDD: View (`src/app/**/page.tsx`,
-  `src/components/`) → Controller (`src/app/api/`) → Model (`src/db/models/`)
-  → MongoDB. La View non importa model né `@/db/connect`; solo il Model accede
-  al database.
+  `src/components/`) → Controller (`src/app/api/`) → Model (`src/db/`) →
+  MongoDB. Il Model (GestioneDatiPersistenti dell'SDD) comprende le entità in
+  `src/db/models/` e i servizi `connect.ts`, `crittografia.ts` e `password.ts`.
+  La View non importa nulla da `@/db/`; solo il Model accede al database.
 - Il controllo del ruolo avviene sempre lato server, nella route. Nascondere un
   pulsante nella View non basta.
 - I dati sanitari si cifrano con AES-256 solo tramite il servizio di
@@ -73,7 +74,11 @@ e workflow (`.github/`). Segui l'architettura approvata dal team.
   centri restano in chiaro.
 - All'amministratore si restituiscono solo i dati anagrafici (nome, cognome,
   e-mail, codice fiscale, data di nascita). La password si salva solo come hash
-  e non esce mai dal Model.
+  e l'hash non viene mai restituito dalle API né arriva alla View. Unica
+  eccezione: la password temporanea generata in InserisciUtente (RF_AD_1,
+  RF_AD_12) viene restituita in chiaro una sola volta all'amministratore, con
+  `Cache-Control: no-store`, e non viene mai salvata in chiaro né scritta nei
+  log.
 - MongoDB non garantisce l'integrità referenziale: le regole di cardinalità
   delle associazioni (RF_AD_8) si verificano nel codice prima di ogni scrittura.
 - Ogni input dell'utente si valida lato server, anche se il form lo valida già.
