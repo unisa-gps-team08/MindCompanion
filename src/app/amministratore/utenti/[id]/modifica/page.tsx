@@ -34,9 +34,9 @@ export default function ModificaUtentePage() {
   return (
     <div
       style={TEMA}
-      className={`${fontTitoli.variable} ${fontTesto.variable} flex-1 bg-[#f7f9f8] text-foreground [font-family:var(--font-testo),system-ui,sans-serif]`}
+      className={`${fontTitoli.variable} ${fontTesto.variable} flex-1 text-foreground [font-family:var(--font-testo),system-ui,sans-serif]`}
     >
-      <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-8 sm:px-6 sm:py-12">
+      <section className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-1 py-2 sm:py-4">
         <div className="flex flex-col gap-5">
           {/* Provvisorio: tornerà all'elenco utenti (RF_AD_7, issue #20). */}
           <Link
@@ -62,7 +62,7 @@ export default function ModificaUtentePage() {
             <ModificaUtenteForm />
           </Suspense>
         </div>
-      </main>
+      </section>
     </div>
   );
 }
