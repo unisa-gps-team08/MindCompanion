@@ -74,7 +74,7 @@ e workflow (`.github/`). Segui l'architettura approvata dal team.
   centri restano in chiaro.
 - All'amministratore si restituiscono solo i dati anagrafici (nome, cognome,
   e-mail, codice fiscale, data di nascita). La password si salva solo come hash
-  e l'hash non esce mai dal Model. Unica eccezione: la password temporanea
+  e l'hash non viene mai restituito dalle API né arriva alla View. Unica eccezione: la password temporanea
   generata in InserisciUtente (RF_AD_1, RF_AD_12) viene restituita in chiaro una
   sola volta all'amministratore, con `Cache-Control: no-store`, e non viene mai
   salvata in chiaro né scritta nei log.
