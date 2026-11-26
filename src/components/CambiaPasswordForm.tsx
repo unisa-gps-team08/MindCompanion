@@ -86,9 +86,13 @@ export function CambiaPasswordForm() {
         </p>
       )}
 
-      <div>
+      <div className="flex flex-wrap gap-3">
         <Button type="submit" size="lg" disabled={inCorso}>
           {inCorso ? "Salvataggio in corso…" : "Salva nuova password"}
+        </Button>
+        {/* Dal menu utente si torna alla pagina di prima; al primo accesso il proxy riporta qui. */}
+        <Button type="button" size="lg" variant="outline" disabled={inCorso} onClick={() => router.back()}>
+          Annulla
         </Button>
       </div>
     </form>
