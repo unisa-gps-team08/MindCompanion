@@ -47,11 +47,11 @@ export function CambiaPasswordForm() {
     setVersione((precedente) => precedente + 1);
   }
 
+  // Destinazione interna fissa: la cronologia può contenere /login o pagine fuori dall'app.
+  // Il proxy porta "/" all'area dell'utente; con la password temporanea riporta qui (RF_UE_4).
   function annulla() {
     svuota();
-    // Aperta da un link diretto non c'è una pagina precedente: "/" porta il proxy all'area dell'utente.
-    if (window.history.length > 1) router.back();
-    else router.push("/");
+    router.push("/");
   }
 
   async function conferma(evento: FormEvent<HTMLFormElement>) {
@@ -111,7 +111,6 @@ export function CambiaPasswordForm() {
         <Button type="submit" size="lg" disabled={inCorso}>
           {inCorso ? "Salvataggio in corso…" : "Salva nuova password"}
         </Button>
-        {/* Al primo accesso il proxy riporta comunque qui (RF_UE_4). */}
         <Button type="button" size="lg" variant="outline" disabled={inCorso} onClick={annulla}>
           Annulla
         </Button>
