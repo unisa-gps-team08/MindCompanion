@@ -108,8 +108,11 @@ function condizioneTermine(termine: string): CondizioneTesto {
   };
 }
 
-function costruisciQueryRicerca(filtro: FiltroRicercaUtenti): Record<string, unknown> {
+function costruisciQueryRicerca(filtro: FiltroRicercaUtenti, escludiId?: string): Record<string, unknown> {
   const query: Record<string, unknown> = {};
+  if (escludiId) {
+    query._id = { $ne: escludiId };
+  }
   if (filtro.role) {
     query.ruolo = filtro.role;
   }
@@ -130,9 +133,13 @@ function costruisciQueryRicerca(filtro: FiltroRicercaUtenti): Record<string, unk
 /**
  * Restituisce l'elenco degli utenti della piattaforma filtrati per testo anagrafico e ruolo (RF_AD_7).
  * Espone esclusivamente i campi anagrafici e il ruolo, ordinati per cognome, nome ed e-mail.
+ * Se escludiId è valorizzato, esclude quell'utente dai risultati (es. l'amministratore autenticato).
  */
-export async function cercaUtenti(filtro: FiltroRicercaUtenti = {}): Promise<UtenteAnagrafico[]> {
-  const documenti = await Utente.find(costruisciQueryRicerca(filtro))
+export async function cercaUtenti(
+  filtro: FiltroRicercaUtenti = {},
+  escludiId?: string,
+): Promise<UtenteAnagrafico[]> {
+  const documenti = await Utente.find(costruisciQueryRicerca(filtro, escludiId))
     .select(CAMPI_ANAGRAFICI)
     .sort({ cognome: 1, nome: 1, email: 1 })
     .lean<DocumentoUtenteAnagrafico[]>();

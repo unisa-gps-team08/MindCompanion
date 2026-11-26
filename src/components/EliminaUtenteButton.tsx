@@ -95,10 +95,8 @@ export function EliminaUtenteDialog({
             Conferma eliminazione utente
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Stai per eliminare definitivamente questo utente dalla piattaforma.
-            {utente?.ruolo === "PAZIENTE"
-              ? " Verranno rimosse anche le associazioni e l'eventuale piano alimentare associato."
-              : " Verranno rimosse anche tutte le associazioni con i pazienti."}
+            Stai per eliminare definitivamente questo utente dalla piattaforma MindCompanion. Tutti
+            i suoi dati e associazioni andranno persi. Sei sicuro di voler continuare?
           </AlertDialogDescription>
         </AlertDialogHeader>
 

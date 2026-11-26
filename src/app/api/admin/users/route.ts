@@ -45,9 +45,10 @@ function isChiaveDuplicata(errore: unknown): boolean {
 }
 
 // VisualizzaElencoUtentiControl (RF_AD_7): solo l'amministratore consulta l'elenco utenti
-// filtrabile per testo anagrafico (`search`) e ruolo (`role`), con soli campi anagrafici.
+// filtrabile per testo anagrafico (`search`) e ruolo (`role`), con soli campi anagrafici
+// ed escludendo sé stesso dall'elenco.
 export async function GET(request: Request) {
-  const { risposta } = await richiediRuolo("AMMINISTRATORE");
+  const { utente, risposta } = await richiediRuolo("AMMINISTRATORE");
   if (risposta) return risposta;
 
   const { searchParams } = new URL(request.url);
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
 
   try {
     await connectDB();
-    const utenti = await cercaUtenti(esito.filtro);
+    const utenti = await cercaUtenti(esito.filtro, utente._id.toString());
     return Response.json({ utenti }, { headers: INTESTAZIONI_NO_CACHE });
   } catch {
     return Response.json(
