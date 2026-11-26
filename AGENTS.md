@@ -7,20 +7,18 @@ importa e non contiene regole proprie.
 ## Stack
 
 - Next.js 16 (App Router) + React 19 + TypeScript, Tailwind CSS 4, ESLint 9.
-- Gestore pacchetti: **pnpm**. Usa `pnpm install --frozen-lockfile` per installare, mai `pnpm add`
-  senza una PR di dipendenze.
 - Codice applicativo in `src/` (`src/app/` per route e layout), asset statici
   in `public/`. Alias import: `@/*` → `src/*`.
 - Node.js 20 o superiore. Usa Node.js 24 e pnpm 10.33.2 per riprodurre la CI.
 
 ## Comandi
 
-| Comando         | Scopo                              |
-| --------------- | ---------------------------------- |
-| `pnpm install --frozen-lockfile` | Installa le dipendenze dal lockfile |
-| `pnpm dev`   | Server di sviluppo su `localhost:3000` |
-| `pnpm build` | Build di produzione (controlla anche i tipi) |
-| `pnpm lint`  | ESLint                             |
+| Comando                          | Scopo                                        |
+| -------------------------------- | -------------------------------------------- |
+| `pnpm install --frozen-lockfile` | Installa le dipendenze dal lockfile          |
+| `pnpm dev`                       | Server di sviluppo su `localhost:3000`       |
+| `pnpm build`                     | Build di produzione (controlla anche i tipi) |
+| `pnpm lint`                      | ESLint                                       |
 
 Un task è chiuso solo se `pnpm lint`, `pnpm build` e i test previsti passano.
 `pnpm test:integration` esegue il test di `/api/health` con `node:test`.
@@ -99,11 +97,11 @@ per:
   componenti shadcn in `src/components/ui/` (`button.tsx`), che restano come li
   genera la libreria.
 
-| Elemento | Convenzione | Esempio |
-| --- | --- | --- |
-| Componenti React, classi, tipi | PascalCase, senza prefisso `I` | `ElencoUtentiPage`, `Utente` |
-| Funzioni e variabili | camelCase | `salvaAvanzamento`, `pianoAttivo` |
-| Costanti globali | UPPER_SNAKE_CASE | `MAX_TENTATIVI_LOGIN` |
+| Elemento                       | Convenzione                    | Esempio                           |
+| ------------------------------ | ------------------------------ | --------------------------------- |
+| Componenti React, classi, tipi | PascalCase, senza prefisso `I` | `ElencoUtentiPage`, `Utente`      |
+| Funzioni e variabili           | camelCase                      | `salvaAvanzamento`, `pianoAttivo` |
+| Costanti globali               | UPPER_SNAKE_CASE               | `MAX_TENTATIVI_LOGIN`             |
 
 - Funzioni brevi con una sola responsabilità; i componenti oltre circa 200 righe
   vanno divisi.
