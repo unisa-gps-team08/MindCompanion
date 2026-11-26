@@ -32,7 +32,9 @@ async function salvaUtente(valori: NuovoUtente, password: string) {
 
   if (valori.ruolo === "MEDICO") return Medico.create({ ...documento, codiceMedico, specializzazione });
   if (valori.ruolo === "PAZIENTE") return Paziente.create(documento);
-  return Utente.create(documento);
+  // Tutore, Nutrizionista e Amministratore non hanno un discriminator: Utente.create() con
+  // ruolo "TUTORE" cerca il discriminator e fallisce. new Utente() salva nel model base.
+  return new Utente(documento).save();
 }
 
 // Due inserimenti quasi contemporanei possono superare trovaDuplicati: l'indice univoco li blocca.

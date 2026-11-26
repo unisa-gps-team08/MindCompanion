@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
+import { ChevronsUpDownIcon, KeyRoundIcon, LogOutIcon } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -19,6 +19,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { PERCORSO_CAMBIA_PASSWORD } from "@/lib/aree";
 import {
   calcolaIniziali,
   ETICHETTE_RUOLO,
@@ -31,7 +32,8 @@ type MenuUtenteProps = {
   modalitaPaziente: boolean;
 };
 
-// Menu utente con nome, e-mail, ruolo e logout collegato a POST /api/auth/logout (RF_UE_2).
+// Menu utente con nome, e-mail, ruolo, cambio password (RF_UE_3) e logout collegato a
+// POST /api/auth/logout (RF_UE_2).
 export function MenuUtente({ utente, modalitaPaziente }: MenuUtenteProps) {
   const router = useRouter();
   const { isMobile } = useSidebar();
@@ -167,6 +169,15 @@ export function MenuUtente({ utente, modalitaPaziente }: MenuUtenteProps) {
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
+
+            {/* CambiaPasswordButton (RF_UE_3): apre CambiaPasswordForm. */}
+            <DropdownMenuItem
+              onClick={() => router.push(PERCORSO_CAMBIA_PASSWORD)}
+              className={cn(modalitaPaziente && "py-2.5 text-lg font-medium")}
+            >
+              <KeyRoundIcon aria-hidden="true" />
+              <span>Cambia password</span>
+            </DropdownMenuItem>
 
             <DropdownMenuItem
               variant="destructive"
