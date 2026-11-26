@@ -23,9 +23,10 @@ const TEMA = {
 } as CSSProperties;
 
 // Ingresso della pagina, una sola volta: prima il titolo, poi la descrizione, poi la scheda.
-// Niente animazioni per chi le ha disattivate nel sistema operativo.
+// Si muove solo la posizione, non l'opacità: se il browser sospende le animazioni (scheda in
+// background) il contenuto resta comunque visibile. Niente animazioni per chi le ha disattivate.
 const INGRESSO =
-  "animate-in fade-in slide-in-from-bottom-3 duration-700 ease-[cubic-bezier(.22,1,.36,1)] [animation-fill-mode:both] motion-reduce:animate-none";
+  "animate-in slide-in-from-bottom-3 duration-700 ease-[cubic-bezier(.22,1,.36,1)] [animation-fill-mode:both] motion-reduce:animate-none";
 
 // Pagina di ModificaUtente (RF_AD_2, SC_AD_2). L'accesso è riservato all'amministratore dal proxy.
 // Il pulsante "Modifica Utente" che porta qui arriverà con l'elenco utenti (RF_AD_7, issue #20).
