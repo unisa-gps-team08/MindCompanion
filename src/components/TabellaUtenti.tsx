@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { UtenteAnagrafico } from "@/lib/validazioneRicercaUtenti";
 
@@ -16,14 +16,16 @@ type TabellaUtentiProps = {
   inCaricamento: boolean;
   haFiltriAttivi: boolean;
   onAzzeraFiltri: () => void;
+  onRichiediEliminazione: (utente: UtenteAnagrafico) => void;
 };
 
-/** Tabella anagrafica degli utenti con azioni per riga (RF_AD_7). */
+/** Tabella anagrafica degli utenti con azioni per riga (RF_AD_7, RF_AD_3). */
 export function TabellaUtenti({
   utenti,
   inCaricamento,
   haFiltriAttivi,
   onAzzeraFiltri,
+  onRichiediEliminazione,
 }: TabellaUtentiProps) {
   return (
     <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-xs">
@@ -103,13 +105,17 @@ export function TabellaUtenti({
                     >
                       Modifica Utente
                     </Link>
-                    <Link
-                      href={`/amministratore/utenti/${utente.id}/elimina`}
-                      aria-label={`Elimina utente ${utente.nome} ${utente.cognome}`}
-                      className={buttonVariants({ variant: "outline", size: "sm" })}
-                    >
-                      Elimina
-                    </Link>
+                    {utente.ruolo !== "AMMINISTRATORE" && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        aria-label={`Elimina utente ${utente.nome} ${utente.cognome}`}
+                        onClick={() => onRichiediEliminazione(utente)}
+                      >
+                        Elimina
+                      </Button>
+                    )}
                     {/* Gestisci associazioni è previsto solo per gli utenti con ruolo Paziente. */}
                     {utente.ruolo === "PAZIENTE" && (
                       <Link
