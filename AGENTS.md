@@ -63,9 +63,10 @@ e workflow (`.github/`). Segui l'architettura approvata dal team.
 ## Architettura
 
 - Architettura stratificata chiusa dell'SDD: View (`src/app/**/page.tsx`,
-  `src/components/`) → Controller (`src/app/api/`) → Model (`src/db/models/`)
-  → MongoDB. La View non importa model né `@/db/connect`; solo il Model accede
-  al database.
+  `src/components/`) → Controller (`src/app/api/`) → Model (`src/db/`) →
+  MongoDB. Il Model (GestioneDatiPersistenti dell'SDD) comprende le entità in
+  `src/db/models/` e i servizi `connect.ts`, `crittografia.ts` e `password.ts`.
+  La View non importa nulla da `@/db/`; solo il Model accede al database.
 - Il controllo del ruolo avviene sempre lato server, nella route. Nascondere un
   pulsante nella View non basta.
 - I dati sanitari si cifrano con AES-256 solo tramite il servizio di
