@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Avviso } from "@/components/Avviso";
 import { Button } from "@/components/ui/button";
 
 // LogoutButton (RF_UE_2).
@@ -29,15 +30,11 @@ export function LogoutButton() {
   }
 
   return (
-    <div className="flex flex-col items-start gap-2">
-      <Button variant="outline" onClick={esci} disabled={inCorso}>
+    <div className="flex flex-col items-start gap-3">
+      <Button variant="ghost" size="lg" onClick={esci} disabled={inCorso}>
         {inCorso ? "Uscita in corso…" : "Esci"}
       </Button>
-      {errore && (
-        <p role="alert" className="text-red-700">
-          {errore}
-        </p>
-      )}
+      {errore && <Avviso tipo="errore">{errore}</Avviso>}
     </div>
   );
 }

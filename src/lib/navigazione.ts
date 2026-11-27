@@ -55,6 +55,7 @@ export const VOCI_MENU_PER_RUOLO: Record<RuoloUtente, readonly VoceMenu[]> = {
       titolo: "Gestione Utenti",
       percorso: "/amministratore",
       icona: "utenti",
+<<<<<<< HEAD
       corrispondenzaEsatta: true,
       sottoPercorsi: ["/amministratore/utenti", "/amministratore/pazienti"],
     },
@@ -62,6 +63,8 @@ export const VOCI_MENU_PER_RUOLO: Record<RuoloUtente, readonly VoceMenu[]> = {
       titolo: "Centri e Attività",
       percorso: "/amministratore/centri",
       icona: "centri",
+=======
+>>>>>>> origin/main
     },
   ],
   NUTRIZIONISTA: [
@@ -118,7 +121,11 @@ const SOTTOPAGINE_NOTE: Record<string, string> = {
 };
 
 const PATTERN_MODIFICA_UTENTE = /^\/amministratore\/utenti\/[^/]+\/modifica$/;
+<<<<<<< HEAD
 const PATTERN_ASSOCIAZIONI_PAZIENTE = /^\/amministratore\/pazienti\/[^/]+\/associazioni$/;
+=======
+const PATTERN_SCHEDA_PAZIENTE = /^\/(nutrizionista|medico|tutore)\/pazienti\/[^/]+$/;
+>>>>>>> origin/main
 
 function ricavaSottoPagina(pathname: string): string | undefined {
   if (SOTTOPAGINE_NOTE[pathname]) {
@@ -127,8 +134,13 @@ function ricavaSottoPagina(pathname: string): string | undefined {
   if (PATTERN_MODIFICA_UTENTE.test(pathname)) {
     return "Modifica utente";
   }
+<<<<<<< HEAD
   if (PATTERN_ASSOCIAZIONI_PAZIENTE.test(pathname)) {
     return "Gestione associazioni";
+=======
+  if (PATTERN_SCHEDA_PAZIENTE.test(pathname)) {
+    return "Scheda paziente";
+>>>>>>> origin/main
   }
   return undefined;
 }

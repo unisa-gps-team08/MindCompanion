@@ -1,16 +1,10 @@
 import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
 import { cifra, decifra } from "@/db/crittografia";
+import { GIORNI_SETTIMANA, TIPI_PASTO, type NuovoPianoAlimentare } from "@/lib/pianoAlimentare";
 
-export const GIORNI_SETTIMANA = [
-  "LUNEDI",
-  "MARTEDI",
-  "MERCOLEDI",
-  "GIOVEDI",
-  "VENERDI",
-  "SABATO",
-  "DOMENICA",
-] as const;
-export const TIPI_PASTO = ["COLAZIONE", "PRANZO", "CENA", "SPUNTINO"] as const;
+// Le liste di giorni e tipi di pasto stanno in src/lib/pianoAlimentare.ts perché le usa
+// anche la View, che non può importare da @/db.
+export { GIORNI_SETTIMANA, TIPI_PASTO };
 
 // Setter e getter dei campi sanitari: si cifra in scrittura e si decifra in lettura (RNF_FUN_4).
 // Gli array vanno sempre assegnati per intero: un push() salterebbe il setter
@@ -65,3 +59,13 @@ export type PianoAlimentare = InferSchemaType<typeof pianoAlimentareSchema>;
 export const PianoAlimentare =
   (models.PianoAlimentare as Model<PianoAlimentare>) ??
   model<PianoAlimentare>("PianoAlimentare", pianoAlimentareSchema);
+
+/**
+ * creaPianoAlimentare (RF_NT_1): salva il piano alimentare di un paziente. I setter dello
+ * schema cifrano con AES-256 raccomandazioni, alimenti e porzioni prima della scrittura.
+ * Associazione con il nutrizionista e piano già esistente li verifica il chiamante;
+ * l'indice univoco su paziente blocca comunque un secondo piano.
+ */
+export async function creaPianoAlimentare(pazienteId: string, valori: NuovoPianoAlimentare) {
+  return PianoAlimentare.create({ paziente: pazienteId, ...valori });
+}
