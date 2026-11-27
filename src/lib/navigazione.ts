@@ -55,13 +55,6 @@ export const VOCI_MENU_PER_RUOLO: Record<RuoloUtente, readonly VoceMenu[]> = {
       titolo: "Gestione Utenti",
       percorso: "/amministratore",
       icona: "utenti",
-      corrispondenzaEsatta: true,
-      sottoPercorsi: ["/amministratore/utenti"],
-    },
-    {
-      titolo: "Centri e Attività",
-      percorso: "/amministratore/centri",
-      icona: "centri",
     },
   ],
   NUTRIZIONISTA: [
