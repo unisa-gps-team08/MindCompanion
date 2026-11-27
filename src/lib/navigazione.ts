@@ -56,7 +56,7 @@ export const VOCI_MENU_PER_RUOLO: Record<RuoloUtente, readonly VoceMenu[]> = {
       percorso: "/amministratore",
       icona: "utenti",
       corrispondenzaEsatta: true,
-      sottoPercorsi: ["/amministratore/utenti"],
+      sottoPercorsi: ["/amministratore/utenti", "/amministratore/pazienti"],
     },
     {
       titolo: "Centri e Attività",
@@ -118,6 +118,7 @@ const SOTTOPAGINE_NOTE: Record<string, string> = {
 };
 
 const PATTERN_MODIFICA_UTENTE = /^\/amministratore\/utenti\/[^/]+\/modifica$/;
+const PATTERN_ASSOCIAZIONI_PAZIENTE = /^\/amministratore\/pazienti\/[^/]+\/associazioni$/;
 
 function ricavaSottoPagina(pathname: string): string | undefined {
   if (SOTTOPAGINE_NOTE[pathname]) {
@@ -125,6 +126,9 @@ function ricavaSottoPagina(pathname: string): string | undefined {
   }
   if (PATTERN_MODIFICA_UTENTE.test(pathname)) {
     return "Modifica utente";
+  }
+  if (PATTERN_ASSOCIAZIONI_PAZIENTE.test(pathname)) {
+    return "Gestione associazioni";
   }
   return undefined;
 }
