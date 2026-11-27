@@ -102,7 +102,8 @@ export function LayoutAreaRiservata({ children }: LayoutAreaRiservataProps) {
         className="print:[&_[data-slot=sidebar]]:hidden"
       >
         <SidebarApplicazione utente={utente} inCaricamento={inCaricamento} />
-        <SidebarInset>
+        {/* min-w-0 evita che contenuti larghi (es. tabelle) allarghino SidebarInset oltre il viewport. */}
+        <SidebarInset className="min-w-0">
           <header
             className={cn(
               "sticky top-0 z-20 flex shrink-0 items-center gap-2 border-b border-border/80 bg-card/90 px-4 backdrop-blur-xs print:hidden md:px-6",
