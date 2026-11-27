@@ -11,6 +11,11 @@ export default function AreaAmministratorePage() {
           Aggiungi Nuovo Utente
         </Link>
       </div>
+      <div>
+        <Link href="/amministratore/utenti/associazioni" className={buttonVariants({ size: "lg", variant: "outline" })}>
+          Gestisci associazioni utenti
+        </Link>
+      </div>
     </AreaProvvisoria>
   );
 }
