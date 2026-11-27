@@ -46,3 +46,8 @@ next-env.d.ts
 
 # agenti (impostazioni locali)
 .claude/settings.local.json
+
+# graphify: si versiona solo graph.json, il resto è output locale
+# (rigenera l'HTML con `graphify export html`)
+graphify-out/*
+!graphify-out/graph.json
