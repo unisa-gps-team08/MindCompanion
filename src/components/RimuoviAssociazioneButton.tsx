@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import { Button } from "@/components/ui/button";
 import type { AssociazioniPazienteAttuali, RuoloFigura } from "@/lib/associazioniPaziente";
 
