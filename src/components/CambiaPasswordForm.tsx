@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Avviso } from "@/components/Avviso";
 import { CampoPassword } from "@/components/CampoPassword";
 import { Button } from "@/components/ui/button";
 import {
@@ -87,7 +88,7 @@ export function CambiaPasswordForm() {
   }
 
   return (
-    <form onSubmit={conferma} className="flex flex-col gap-4 text-lg">
+    <form onSubmit={conferma} className="flex flex-col gap-5">
       {CAMPI.map(({ nome, etichetta, autoComplete, minLength }) => (
         <CampoPassword
           key={`${nome}-${versione}`}
@@ -101,11 +102,7 @@ export function CambiaPasswordForm() {
         />
       ))}
 
-      {errore && (
-        <p role="alert" className="text-red-700">
-          {errore}
-        </p>
-      )}
+      {errore && <Avviso tipo="errore">{errore}</Avviso>}
 
       <div className="flex flex-wrap gap-3">
         <Button type="submit" size="lg" disabled={inCorso}>

@@ -2,6 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Avviso } from "@/components/Avviso";
+import { Campo } from "@/components/CampoForm";
+import { SchedaAccesso } from "@/components/SchedaAccesso";
 import { Button } from "@/components/ui/button";
 
 // LoginPage (RF_UE_1).
@@ -41,44 +44,33 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 p-6">
-      <h1 className="text-2xl font-semibold">Accedi a MindCompanion</h1>
+    <SchedaAccesso titolo="Accedi" descrizione="Inserisci l'e-mail e la password del tuo account.">
+      <form onSubmit={accedi} className="flex flex-col gap-5">
+        <Campo
+          etichetta="E-mail"
+          nome="email"
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Campo
+          etichetta="Password"
+          nome="password"
+          type="password"
+          required
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-      <form onSubmit={accedi} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-lg">
-          E-mail
-          <input
-            type="email"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="rounded-lg border px-3 py-2"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1 text-lg">
-          Password
-          <input
-            type="password"
-            required
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="rounded-lg border px-3 py-2"
-          />
-        </label>
-
-        {errore && (
-          <p role="alert" className="text-lg text-red-700">
-            {errore}
-          </p>
-        )}
+        {errore && <Avviso tipo="errore">{errore}</Avviso>}
 
         <Button type="submit" size="lg" disabled={inCorso}>
           {inCorso ? "Accesso in corso…" : "Accedi"}
         </Button>
       </form>
-    </main>
+    </SchedaAccesso>
   );
 }
