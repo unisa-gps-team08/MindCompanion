@@ -118,7 +118,7 @@ export function ElencoUtentiPage() {
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
           Elenco utenti
         </h1>
         <Link
