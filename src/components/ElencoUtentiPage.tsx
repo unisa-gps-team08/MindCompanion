@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EliminaUtenteDialog } from "@/components/EliminaUtenteButton";
-import { LogoutButton } from "@/components/LogoutButton";
 import { ETICHETTE_RUOLO, TabellaUtenti } from "@/components/TabellaUtenti";
 import { ToastEsito, type DatiToast } from "@/components/ToastEsito";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -117,99 +116,79 @@ export function ElencoUtentiPage() {
   const haFiltriAttivi = search.trim().length > 0 || role.length > 0;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <span className="text-sm font-bold tracking-wider uppercase text-foreground">
-            Area Personale
-          </span>
-          <nav aria-label="Navigazione amministratore" className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/amministratore"
-              aria-current="page"
-              className={buttonVariants({ variant: "default", size: "default" })}
-            >
-              Elenco utenti
-            </Link>
-            <LogoutButton />
-          </nav>
-        </div>
-      </header>
+    <section className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          Elenco utenti
+        </h1>
+        <Link
+          href="/amministratore/utenti/nuovo"
+          className={buttonVariants({ variant: "default", size: "lg" })}
+        >
+          Aggiungi Nuovo Utente
+        </Link>
+      </div>
 
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-6 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Elenco utenti
-          </h1>
-          <Link
-            href="/amministratore/utenti/nuovo"
-            className={buttonVariants({ variant: "default", size: "lg" })}
+      <section aria-label="Ricerca e filtro utenti" className="flex flex-col gap-3 sm:flex-row">
+        <label className="flex-1">
+          <span className="sr-only">Cerca per nome, cognome, codice fiscale o e-mail</span>
+          <input
+            type="search"
+            value={search}
+            maxLength={LUNGHEZZA_MASSIMA_RICERCA}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cerca per nome, cognome, codice fiscale o e-mail"
+            className="h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          />
+        </label>
+
+        <label className="sm:w-52">
+          <span className="sr-only">Filtra per ruolo</span>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            aria-label="Filtra per ruolo"
+            className="h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
-            Aggiungi Nuovo Utente
-          </Link>
+            <option value="">Tutti i ruoli</option>
+            {RUOLI_UTENTE.map((valoreRuolo) => (
+              <option key={valoreRuolo} value={valoreRuolo}>
+                {ETICHETTE_RUOLO[valoreRuolo]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </section>
+
+      {errore && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
+          <span>{errore}</span>
+          <Button variant="outline" size="sm" onClick={riprova}>
+            Riprova
+          </Button>
         </div>
+      )}
 
-        <section aria-label="Ricerca e filtro utenti" className="flex flex-col gap-3 sm:flex-row">
-          <label className="flex-1">
-            <span className="sr-only">Cerca per nome, cognome, codice fiscale o e-mail</span>
-            <input
-              type="search"
-              value={search}
-              maxLength={LUNGHEZZA_MASSIMA_RICERCA}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cerca per nome, cognome, codice fiscale o e-mail"
-              className="h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            />
-          </label>
+      <TabellaUtenti
+        utenti={utenti}
+        inCaricamento={inCaricamento}
+        haFiltriAttivi={haFiltriAttivi}
+        onAzzeraFiltri={azzeraFiltri}
+        onRichiediEliminazione={setUtenteDaEliminare}
+      />
 
-          <label className="sm:w-52">
-            <span className="sr-only">Filtra per ruolo</span>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              aria-label="Filtra per ruolo"
-              className="h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              <option value="">Tutti i ruoli</option>
-              {RUOLI_UTENTE.map((valoreRuolo) => (
-                <option key={valoreRuolo} value={valoreRuolo}>
-                  {ETICHETTE_RUOLO[valoreRuolo]}
-                </option>
-              ))}
-            </select>
-          </label>
-        </section>
-
-        {errore && (
-          <div
-            role="alert"
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-          >
-            <span>{errore}</span>
-            <Button variant="outline" size="sm" onClick={riprova}>
-              Riprova
-            </Button>
-          </div>
-        )}
-
-        <TabellaUtenti
-          utenti={utenti}
-          inCaricamento={inCaricamento}
-          haFiltriAttivi={haFiltriAttivi}
-          onAzzeraFiltri={azzeraFiltri}
-          onRichiediEliminazione={setUtenteDaEliminare}
-        />
-
-        <EliminaUtenteDialog
-          key={utenteDaEliminare?.id ?? "chiuso"}
-          utente={utenteDaEliminare}
-          onChiudi={() => setUtenteDaEliminare(null)}
-          onEliminato={gestisciEliminato}
-          onNonTrovato={gestisciUtenteNonTrovato}
-          onSessioneScaduta={() => router.replace("/login")}
-        />
-        <ToastEsito toast={toast} onChiudi={chiudiToast} />
-      </main>
-    </div>
+      <EliminaUtenteDialog
+        key={utenteDaEliminare?.id ?? "chiuso"}
+        utente={utenteDaEliminare}
+        onChiudi={() => setUtenteDaEliminare(null)}
+        onEliminato={gestisciEliminato}
+        onNonTrovato={gestisciUtenteNonTrovato}
+        onSessioneScaduta={() => router.replace("/login")}
+      />
+      <ToastEsito toast={toast} onChiudi={chiudiToast} />
+    </section>
   );
 }
