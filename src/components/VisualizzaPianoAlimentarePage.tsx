@@ -107,7 +107,8 @@ export function VisualizzaPianoAlimentarePage({
         <DettaglioPianoAlimentare
           piano={esito.piano}
           mostraAzioni={gestionePiano}
-          percorsoModifica={`${percorsoScheda}/piano-alimentare/modifica`}
+          pazienteId={pazienteId}
+          percorsoScheda={percorsoScheda}
         />
         <ToastEsito toast={toast} onChiudi={chiudiToast} />
       </>

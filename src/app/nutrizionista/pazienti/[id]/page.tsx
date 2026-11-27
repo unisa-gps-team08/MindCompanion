@@ -1,18 +1,6 @@
 import { Suspense } from "react";
-import type { AzioneSchedaPaziente } from "@/components/DettaglioAnagraficoPaziente";
-import { SchedaPazientePage } from "@/components/SchedaPazientePage";
+import { SchedaPazienteNutrizionista } from "@/components/SchedaPazienteNutrizionista";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const AZIONI_NUTRIZIONISTA: readonly AzioneSchedaPaziente[] = [
-  {
-    titolo: "Piano alimentare",
-    descrizione:
-      "Consulta o gestisci il piano alimentare settimanale e le raccomandazioni del paziente.",
-    etichettaPulsante: "Apri piano alimentare",
-    percorsoRelativo: "piano-alimentare",
-    icona: "alimentazione",
-  },
-];
 
 function FallbackSchedaPaziente() {
   return (
@@ -34,19 +22,11 @@ async function ContenutoSchedaNutrizionista({
 }) {
   const { id } = await params;
 
-  return (
-    <SchedaPazientePage
-      pazienteId={id}
-      endpointApiBase="/api/nutritionist/patients"
-      percorsoElenco="/nutrizionista"
-      percorsoBaseScheda="/nutrizionista/pazienti"
-      etichettaElenco="I miei pazienti"
-      azioni={AZIONI_NUTRIZIONISTA}
-    />
-  );
+  return <SchedaPazienteNutrizionista pazienteId={id} />;
 }
 
-// Scheda anagrafica del paziente associato al nutrizionista (RF_NT_6).
+// Scheda anagrafica del paziente associato al nutrizionista (RF_NT_6), con l'azione sul piano
+// alimentare che dipende dalla presenza del piano (RF_NT_1, RF_NT_5).
 export default function SchedaPazienteNutrizionistaPage({
   params,
 }: {
