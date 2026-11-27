@@ -1,6 +1,13 @@
 import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
 import { cifra, decifra } from "@/db/crittografia";
-import { GIORNI_SETTIMANA, TIPI_PASTO, type NuovoPianoAlimentare } from "@/lib/pianoAlimentare";
+import {
+  GIORNI_SETTIMANA,
+  TIPI_PASTO,
+  type GiornoSettimana,
+  type NuovoPianoAlimentare,
+  type PianoAlimentareDettaglio,
+  type TipoPasto,
+} from "@/lib/pianoAlimentare";
 
 // Le liste di giorni e tipi di pasto stanno in src/lib/pianoAlimentare.ts perché le usa
 // anche la View, che non può importare da @/db.
@@ -68,4 +75,33 @@ export const PianoAlimentare =
  */
 export async function creaPianoAlimentare(pazienteId: string, valori: NuovoPianoAlimentare) {
   return PianoAlimentare.create({ paziente: pazienteId, ...valori });
+}
+
+/**
+ * leggiPianoAlimentare (RF_NT_7): restituisce il piano del paziente già decifrato dai getter
+ * dello schema, oppure null se il paziente non ha un piano. L'associazione con il
+ * nutrizionista la verifica il chiamante.
+ */
+export async function leggiPianoAlimentare(
+  pazienteId: string,
+): Promise<PianoAlimentareDettaglio | null> {
+  const documento = await PianoAlimentare.findOne({ paziente: pazienteId });
+  if (!documento) return null;
+
+  const piano = documento.toObject({ getters: true });
+  return {
+    id: documento._id.toString(),
+    dataCreazione: piano.dataCreazione.toISOString(),
+    dataUltimaModifica: piano.dataUltimaModifica ? piano.dataUltimaModifica.toISOString() : null,
+    ...(piano.raccomandazioniIdriche ? { raccomandazioniIdriche: piano.raccomandazioniIdriche } : {}),
+    ...(piano.raccomandazioniNutrizionali
+      ? { raccomandazioniNutrizionali: piano.raccomandazioniNutrizionali }
+      : {}),
+    pasti: piano.pasti.map((pasto) => ({
+      giorno: pasto.giorno as GiornoSettimana,
+      tipo: pasto.tipo as TipoPasto,
+      alimenti: [...pasto.alimenti],
+      porzioni: [...pasto.porzioni],
+    })),
+  };
 }

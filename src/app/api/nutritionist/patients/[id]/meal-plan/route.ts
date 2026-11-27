@@ -1,6 +1,6 @@
 import { connectDB } from "@/db/connect";
 import { Paziente } from "@/db/models/Paziente";
-import { creaPianoAlimentare, PianoAlimentare } from "@/db/models/PianoAlimentare";
+import { creaPianoAlimentare, leggiPianoAlimentare, PianoAlimentare } from "@/db/models/PianoAlimentare";
 import { richiediRuolo } from "@/lib/autorizzazione";
 import { validaPianoAlimentare } from "@/lib/validazionePianoAlimentare";
 
@@ -51,5 +51,43 @@ export async function POST(request: Request, { params }: Contesto) {
       return Response.json({ errore: MESSAGGIO_PIANO_ESISTENTE }, { status: 409 });
     }
     return Response.json({ errore: "Servizio non disponibile, riprova più tardi." }, { status: 503 });
+  }
+}
+
+// Come la scheda paziente (RF_NT_6): 403 con lo stesso messaggio per id non valido, paziente
+// inesistente o associato a un altro nutrizionista. I dati sanitari non vanno in cache.
+const MESSAGGIO_ACCESSO_NEGATO = "Accesso negato: il paziente non è associato al tuo profilo.";
+const INTESTAZIONI_NO_CACHE = { "Cache-Control": "no-store" };
+
+// VisualizzaPianoAlimentareControl (RF_NT_7): il nutrizionista associato legge il piano
+// decifrato del paziente; 404 con pianoAssente se il paziente non ha ancora un piano.
+export async function GET(_request: Request, { params }: Contesto) {
+  const { utente, risposta } = await richiediRuolo("NUTRIZIONISTA");
+  if (risposta) return risposta;
+
+  const { id } = await params;
+  if (!REGEX_ID.test(id)) {
+    return Response.json({ errore: MESSAGGIO_ACCESSO_NEGATO }, { status: 403, headers: INTESTAZIONI_NO_CACHE });
+  }
+
+  try {
+    await connectDB();
+    if (!(await Paziente.exists({ _id: id, nutrizionista: utente._id }))) {
+      return Response.json({ errore: MESSAGGIO_ACCESSO_NEGATO }, { status: 403, headers: INTESTAZIONI_NO_CACHE });
+    }
+
+    const piano = await leggiPianoAlimentare(id);
+    if (!piano) {
+      return Response.json(
+        { errore: "Il paziente non ha ancora un piano alimentare.", pianoAssente: true },
+        { status: 404, headers: INTESTAZIONI_NO_CACHE },
+      );
+    }
+    return Response.json({ piano }, { headers: INTESTAZIONI_NO_CACHE });
+  } catch {
+    return Response.json(
+      { errore: "Servizio non disponibile, riprova più tardi." },
+      { status: 503, headers: INTESTAZIONI_NO_CACHE },
+    );
   }
 }

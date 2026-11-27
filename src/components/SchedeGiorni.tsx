@@ -8,7 +8,8 @@ type SchedeGiorniProps = {
   giornoAttivo: GiornoSettimana;
   /** Pasti compilati per giorno, mostrati accanto al nome. */
   pastiPerGiorno: Record<GiornoSettimana, number>;
-  giorniConErrori: ReadonlySet<GiornoSettimana>;
+  /** Giorni da segnalare con un pallino rosso (solo nel form). */
+  giorniConErrori?: ReadonlySet<GiornoSettimana>;
   onSeleziona: (giorno: GiornoSettimana) => void;
 };
 
@@ -58,7 +59,7 @@ export function SchedeGiorni({
       {GIORNI_SETTIMANA.map((giorno) => {
         const attivo = giorno === giornoAttivo;
         const pasti = pastiPerGiorno[giorno];
-        const conErrori = giorniConErrori.has(giorno);
+        const conErrori = giorniConErrori?.has(giorno) ?? false;
         return (
           <button
             key={giorno}
