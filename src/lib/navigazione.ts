@@ -16,8 +16,7 @@ export type IconaMenu =
   | "pazienti"
   | "esercizi"
   | "andamento"
-  | "alimentazione"
-  | "questionari";
+  | "alimentazione";
 
 export type VoceMenu = {
   titolo: string;
@@ -111,17 +110,24 @@ export const VOCI_MENU_PER_RUOLO: Record<RuoloUtente, readonly VoceMenu[]> = {
       percorso: "/paziente/piano-alimentare",
       icona: "alimentazione",
     },
-    {
-      titolo: "Questionari",
-      percorso: "/paziente/questionari",
-      icona: "questionari",
-    },
   ],
 };
 
 const SOTTOPAGINE_NOTE: Record<string, string> = {
   "/amministratore/utenti/nuovo": "Aggiungi nuovo utente",
 };
+
+const PATTERN_MODIFICA_UTENTE = /^\/amministratore\/utenti\/[^/]+\/modifica$/;
+
+function ricavaSottoPagina(pathname: string): string | undefined {
+  if (SOTTOPAGINE_NOTE[pathname]) {
+    return SOTTOPAGINE_NOTE[pathname];
+  }
+  if (PATTERN_MODIFICA_UTENTE.test(pathname)) {
+    return "Modifica utente";
+  }
+  return undefined;
+}
 
 function isRuoloValido(valore: unknown): valore is RuoloUtente {
   return (
@@ -174,7 +180,7 @@ export function ricavaBreadcrumb(ruolo: RuoloUtente, pathname: string): Breadcru
     return { area };
   }
 
-  const sottoPagina = SOTTOPAGINE_NOTE[pathname];
+  const sottoPagina = ricavaSottoPagina(pathname);
   if (sottoPagina) {
     return {
       area,

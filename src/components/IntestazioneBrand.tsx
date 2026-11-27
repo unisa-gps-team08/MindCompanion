@@ -12,14 +12,12 @@ import { cn } from "@/lib/utils";
 
 type IntestazioneBrandProps = {
   percorsoHome: string;
-  etichettaRuolo?: string;
   modalitaPaziente?: boolean;
 };
 
-// Sostituisce TeamSwitcher con il brand MindCompanion (issue #19).
+// Intestazione del brand MindCompanion con accesso rapido all'area del ruolo (issue #19).
 export function IntestazioneBrand({
   percorsoHome,
-  etichettaRuolo,
   modalitaPaziente = false,
 }: IntestazioneBrandProps) {
   const { setOpenMobile } = useSidebar();
@@ -30,32 +28,33 @@ export function IntestazioneBrand({
         <SidebarMenuButton
           size="lg"
           tooltip="MindCompanion"
-          className="h-auto min-h-12 group-data-[collapsible=icon]:min-h-0"
+          className="h-auto min-h-12 rounded-xl px-2 py-1.5 transition-[background-color,transform] duration-150 active:scale-[0.985] focus-visible:ring-3 focus-visible:ring-sidebar-ring/40 motion-reduce:transition-none motion-reduce:transform-none group-data-[collapsible=icon]:min-h-0 group-data-[collapsible=icon]:justify-center"
           render={
             <Link href={percorsoHome} onClick={() => setOpenMobile(false)} />
           }
         >
-          <div className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <BrainIcon className="size-4" aria-hidden="true" />
+          <div
+            className={cn(
+              "flex aspect-square shrink-0 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground shadow-xs ring-1 ring-sidebar-primary/15 transition-transform duration-150 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-lg",
+              modalitaPaziente ? "size-10" : "size-9",
+            )}
+          >
+            <BrainIcon
+              className={cn(
+                "group-data-[collapsible=icon]:size-4",
+                modalitaPaziente ? "size-5" : "size-[1.125rem]",
+              )}
+              aria-hidden="true"
+            />
           </div>
-          <div className="grid flex-1 text-left leading-tight">
+          <div className="flex min-w-0 flex-1 items-center group-data-[collapsible=icon]:hidden">
             <span
               className={cn(
-                "truncate font-semibold",
-                modalitaPaziente ? "text-lg text-foreground" : "text-sm",
+                "truncate font-sans font-semibold tracking-[-0.015em] text-sidebar-primary",
+                modalitaPaziente ? "text-xl" : "text-[1.0625rem]",
               )}
             >
               MindCompanion
-            </span>
-            <span
-              className={cn(
-                "truncate",
-                modalitaPaziente
-                  ? "text-sm font-medium text-foreground/85"
-                  : "text-xs text-muted-foreground",
-              )}
-            >
-              {etichettaRuolo ?? "Area riservata"}
             </span>
           </div>
         </SidebarMenuButton>
