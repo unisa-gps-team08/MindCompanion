@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import {
   createColumnHelper,
@@ -38,69 +39,76 @@ const FUNZIONALITA_TABELLA = tableFeatures({
 
 const helperColonne = createColumnHelper<typeof FUNZIONALITA_TABELLA, UtenteAnagrafico>();
 
-const COLONNE_UTENTI = helperColonne.columns([
-  helperColonne.accessor("cognome", {
-    header: "Cognome",
-    cell: (info) => <span className="font-medium">{info.getValue()}</span>,
-  }),
-  helperColonne.accessor("nome", {
-    header: "Nome",
-    cell: (info) => info.getValue(),
-  }),
-  helperColonne.accessor("codiceFiscale", {
-    header: "Codice fiscale",
-    cell: (info) => <span className="font-mono text-xs tracking-wide">{info.getValue()}</span>,
-  }),
-  helperColonne.accessor("email", {
-    header: "E-mail",
-    cell: (info) => info.getValue(),
-  }),
-  helperColonne.accessor("ruolo", {
-    header: "Ruolo",
-    cell: (info) => ETICHETTE_RUOLO[info.getValue()],
-  }),
-  helperColonne.display({
-    id: "azioni",
-    header: () => <span className="block text-right">Azioni</span>,
-    cell: ({ row }) => {
-      const utente = row.original;
-      return (
-        <div className="flex items-center justify-end gap-2">
-          <Link
-            href={`/amministratore/utenti/${utente.id}/modifica`}
-            aria-label={`Modifica utente ${utente.nome} ${utente.cognome}`}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Modifica Utente
-          </Link>
-          <Link
-            href={`/amministratore/utenti/${utente.id}/elimina`}
-            aria-label={`Elimina utente ${utente.nome} ${utente.cognome}`}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Elimina
-          </Link>
-          {/* Gestisci associazioni è previsto solo per gli utenti con ruolo Paziente. */}
-          {utente.ruolo === "PAZIENTE" && (
+function creaColonneUtenti(onRichiediEliminazione: (utente: UtenteAnagrafico) => void) {
+  return helperColonne.columns([
+    helperColonne.accessor("cognome", {
+      header: "Cognome",
+      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+    }),
+    helperColonne.accessor("nome", {
+      header: "Nome",
+      cell: (info) => info.getValue(),
+    }),
+    helperColonne.accessor("codiceFiscale", {
+      header: "Codice fiscale",
+      cell: (info) => <span className="font-mono text-xs tracking-wide">{info.getValue()}</span>,
+    }),
+    helperColonne.accessor("email", {
+      header: "E-mail",
+      cell: (info) => info.getValue(),
+    }),
+    helperColonne.accessor("ruolo", {
+      header: "Ruolo",
+      cell: (info) => ETICHETTE_RUOLO[info.getValue()],
+    }),
+    helperColonne.display({
+      id: "azioni",
+      header: () => <span className="block text-right">Azioni</span>,
+      cell: ({ row }) => {
+        const utente = row.original;
+        return (
+          <div className="flex items-center justify-end gap-2">
             <Link
-              href={`/amministratore/pazienti/${utente.id}/associazioni`}
-              aria-label={`Gestisci associazioni di ${utente.nome} ${utente.cognome}`}
+              href={`/amministratore/utenti/${utente.id}/modifica`}
+              aria-label={`Modifica utente ${utente.nome} ${utente.cognome}`}
               className={buttonVariants({ variant: "outline", size: "sm" })}
             >
-              Gestisci associazioni
+              Modifica Utente
             </Link>
-          )}
-        </div>
-      );
-    },
-  }),
-]);
+            {utente.ruolo !== "AMMINISTRATORE" && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                aria-label={`Elimina utente ${utente.nome} ${utente.cognome}`}
+                onClick={() => onRichiediEliminazione(utente)}
+              >
+                Elimina
+              </Button>
+            )}
+            {/* Gestisci associazioni è previsto solo per gli utenti con ruolo Paziente. */}
+            {utente.ruolo === "PAZIENTE" && (
+              <Link
+                href={`/amministratore/pazienti/${utente.id}/associazioni`}
+                aria-label={`Gestisci associazioni di ${utente.nome} ${utente.cognome}`}
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                Gestisci associazioni
+              </Link>
+            )}
+          </div>
+        );
+      },
+    }),
+  ]);
+}
 
 type TabellaUtentiProps = {
   utenti: UtenteAnagrafico[];
   inCaricamento: boolean;
   haFiltriAttivi: boolean;
   onAzzeraFiltri: () => void;
+  onRichiediEliminazione: (utente: UtenteAnagrafico) => void;
 };
 
 /** Data Table shadcn con paginazione client per l'elenco utenti anagrafici (RF_AD_7). */
@@ -109,11 +117,17 @@ export function TabellaUtenti({
   inCaricamento,
   haFiltriAttivi,
   onAzzeraFiltri,
+  onRichiediEliminazione,
 }: TabellaUtentiProps) {
+  const colonne = useMemo(
+    () => creaColonneUtenti(onRichiediEliminazione),
+    [onRichiediEliminazione],
+  );
+
   const tabella = useTable(
     {
       features: FUNZIONALITA_TABELLA,
-      columns: COLONNE_UTENTI,
+      columns: colonne,
       data: utenti,
       getRowId: (utente) => utente.id,
       autoResetPageIndex: true,
@@ -154,7 +168,7 @@ export function TabellaUtenti({
             {inCaricamento && totaleUtenti === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell
-                  colSpan={COLONNE_UTENTI.length}
+                  colSpan={colonne.length}
                   className="px-4 py-8 text-center text-muted-foreground"
                 >
                   Caricamento elenco utenti…
@@ -163,7 +177,7 @@ export function TabellaUtenti({
             ) : righe.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell
-                  colSpan={COLONNE_UTENTI.length}
+                  colSpan={colonne.length}
                   className="px-4 py-8 text-center text-muted-foreground"
                 >
                   <div className="flex flex-col items-center gap-3">
