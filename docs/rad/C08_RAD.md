@@ -135,21 +135,21 @@
 
 # 1. Introduzione
 
-Il presente documento costituisce il *Requirement Analysis Document* per lo sviluppo di **MindCompanion**, una piattaforma software integrata finalizzata al contrasto, al monitoraggio e alla prevenzione del decadimento cognitivo lieve e delle forme di demenza, tra cui la malattia di Alzheimer. 
+Il presente documento costituisce il *Requirement Analysis Document* per lo sviluppo di **MindCompanion**, una piattaforma software integrata finalizzata al contrasto, al monitoraggio e alla prevenzione del decadimento cognitivo lieve e delle forme di demenza, tra cui la malattia di Alzheimer.
 
 Il sistema è destinato a Residenze Sanitarie Assistenziali (RSA), cooperative sociali e Aziende Sanitarie Locali (ASL) e mira a superare la frammentazione informativa e la discontinuità assistenziale tra la struttura sanitaria, il domicilio del paziente e la rete che assiste il paziente o il singolo paziente se non è ancora assistito da qualcuno.
 
 ## 1.1 Obiettivo del sistema
 
-L'obiettivo primario di **MindCompanion** è offrire una soluzione tecnologica integrata in grado di superare i limiti dei sistemi di allenamento cognitivo tradizionali e di accentrare la gestione della salute del paziente. 
+L'obiettivo primario di **MindCompanion** è offrire una soluzione tecnologica integrata in grado di superare i limiti dei sistemi di allenamento cognitivo tradizionali e di accentrare la gestione della salute del paziente.
 
 In particolare, il sistema si propone di:
 
-- **Personalizzare e dinamizzare la stimolazione cognitiva:** consentire al medico di assegnare, calibrare, modificare o sospendere piani di stimolazione cognitiva adattati alle reali necessità e all'andamento clinico del paziente, evitando la ripetitività degli esercizi a catalogo fisso. 
+- **Personalizzare e dinamizzare la stimolazione cognitiva:** consentire al medico di assegnare, calibrare, modificare o sospendere piani di stimolazione cognitiva adattati alle reali necessità e all'andamento clinico del paziente, evitando la ripetitività degli esercizi a catalogo fisso.
 
-- **Integrare la gestione nutrizionale e degli stili di vita:** permettere al nutrizionista di definire e aggiornare piani alimentari personalizzati e consultare le risposte del paziente al questionario alimentare, affrontando l'alimentazione come uno dei fattori chiave di prevenzione del decadimento cognitivo. 
+- **Integrare la gestione nutrizionale e degli stili di vita:** permettere al nutrizionista di definire e aggiornare piani alimentari personalizzati e consultare le risposte del paziente al questionario alimentare, affrontando l'alimentazione come uno dei fattori chiave di prevenzione del decadimento cognitivo.
 
-- **Garantire la continuità informativa e la trasparenza:** mettere a disposizione del tutore un punto di accesso centralizzato per prendere visione dell’andamento delle sessioni di stimolazione e del piano alimentare assegnato”, riducendo la frammentazione delle informazioni tra struttura sanitaria e tutore. 
+- **Garantire la continuità informativa e la trasparenza:** mettere a disposizione del tutore un punto di accesso centralizzato per prendere visione dell’andamento delle sessioni di stimolazione e del piano alimentare assegnato”, riducendo la frammentazione delle informazioni tra struttura sanitaria e tutore.
 
 - **Fornire uno strumento di supporto decisionale e di monitoraggio continuo:** dotare il personale medico e specialistico di storici e andamento delle sessioni per valutare con continuità e precisione l'evoluzione dello stato di salute del paziente anche al di fuori delle singole visite periodiche.
 
@@ -183,11 +183,11 @@ Il sistema non supporta:
 
 **Obiettivi:**
 
-- Costruire un sistema di facile utilizzo che permetta di prevenire e rallentare il declino cognitivo attraverso attività mirate e la gestione dei fattori di rischio come l'alimentazione; 
+- Costruire un sistema di facile utilizzo che permetta di prevenire e rallentare il declino cognitivo attraverso attività mirate e la gestione dei fattori di rischio come l'alimentazione;
 
-- Migliorare la qualità della vita del paziente e ridurre il carico di stress delle persone coinvolte nell'assistenza; 
+- Migliorare la qualità della vita del paziente e ridurre il carico di stress delle persone coinvolte nell'assistenza;
 
-- Favorire la continuità assistenziale e la collaborazione tra strutture sanitarie, medici, nutrizionisti e tutori. 
+- Favorire la continuità assistenziale e la collaborazione tra strutture sanitarie, medici, nutrizionisti e tutori.
 
 **Criteri di successo del sistema:**
 
@@ -279,7 +279,7 @@ Il sistema non supporta:
 
  RF_[attore]_[numero]
 
-  - **Requisiti Non Funzionali:** descrizione dei criteri di qualità del sistema, espressi con la notazione: 
+  - **Requisiti Non Funzionali:** descrizione dei criteri di qualità del sistema, espressi con la notazione:
 
 RNF_[categoria]_[numero]
 
@@ -289,7 +289,7 @@ RNF_[categoria]_[numero]
 
 ## 2.1 Panoramica
 
-La demenza è una condizione clinica acquisita e progressiva, caratterizzata dal declino di memoria, linguaggio, attenzione e capacità di giudizio. Il suo effetto è compromettere l’autonomia nelle attività quotidiane. La forma più diffusa è la malattia di Alzheimer. È una patologia grave perché irreversibile e porta il paziente a perdere progressivamente la propria autonomia. In Italia si stimano circa 1,1 milioni di persone con demenza, circa 900 mila con un deficit cognitivo lieve (MCI) e circa 3 milioni di persone coinvolte nell’assistenza.  Intervenire nella fase iniziale è fondamentale: la stimolazione cognitiva regolare può contribuire a rallentare il declino e a preservare più a lungo l’autonomia. Oggi esistono già diverse soluzioni digitali per l’allenamento cognitivo. Tra queste ci sono piattaforme per professionisti come NeuronUP e RehaCom, e applicazioni di brain training rivolte al grande pubblico come CogniFit e Lumosity. Si tratta in genere di cataloghi di esercizi predefiniti e il livello di difficoltà non sempre è calibrato sul singolo paziente. Sono quasi sempre pensate per l’uso in struttura o per il pubblico generico. Alcune offerte sono a pagamento e poco accessibili ai tutori. Gli altri aspetti legati alla malattia, come l’alimentazione e le attività fisiche e sociali, il monitoraggio del paziente, sono gestiti separatamente. 
+La demenza è una condizione clinica acquisita e progressiva, caratterizzata dal declino di memoria, linguaggio, attenzione e capacità di giudizio. Il suo effetto è compromettere l’autonomia nelle attività quotidiane. La forma più diffusa è la malattia di Alzheimer. È una patologia grave perché irreversibile e porta il paziente a perdere progressivamente la propria autonomia. In Italia si stimano circa 1,1 milioni di persone con demenza, circa 900 mila con un deficit cognitivo lieve (MCI) e circa 3 milioni di persone coinvolte nell’assistenza.  Intervenire nella fase iniziale è fondamentale: la stimolazione cognitiva regolare può contribuire a rallentare il declino e a preservare più a lungo l’autonomia. Oggi esistono già diverse soluzioni digitali per l’allenamento cognitivo. Tra queste ci sono piattaforme per professionisti come NeuronUP e RehaCom, e applicazioni di brain training rivolte al grande pubblico come CogniFit e Lumosity. Si tratta in genere di cataloghi di esercizi predefiniti e il livello di difficoltà non sempre è calibrato sul singolo paziente. Sono quasi sempre pensate per l’uso in struttura o per il pubblico generico. Alcune offerte sono a pagamento e poco accessibili ai tutori. Gli altri aspetti legati alla malattia, come l’alimentazione e le attività fisiche e sociali, il monitoraggio del paziente, sono gestiti separatamente.
 
 Le problematiche che emergono sono:
 
@@ -389,7 +389,7 @@ L'activity diagram del sistema proposto è composta dalle seguenti attività pri
 
 ![Questionario Alimentare e Piano alimentare](images/fig_04.jpg)
 
- 
+
 
 #### 3.1.1.4 Consultazione e monitoraggio paziente e tutore
 
@@ -555,9 +555,9 @@ L'activity diagram del sistema proposto è composta dalle seguenti attività pri
 |  |   | Il sistema valuta la risposta, salva l'avanzamento con l'esercizio appena confermato e fornisce a Mario un feedback riguardo la correttezza dell'esercizio, dopodiché presenta a Mario il prossimo esercizio. |
 |  | Mario prosegue allo stesso modo fino all'ultimo esercizio e clicca sul pulsante Concludi sessione. |   |
 |  |   | Il sistema registra il completamento della sessione, salva i risultati per il monitoraggio del medico, aggiorna lo storico personale dell'andamento e mostra a schermo un messaggio di conferma. |
- 
 
- 
+
+
 
 | **NOME SCENARIO** | SC_PZ_2 VisualizzaPianoAlimentarePaziente |  |
 | :---: | --- | --- |
@@ -567,7 +567,7 @@ L'activity diagram del sistema proposto è composta dalle seguenti attività pri
 |  |   | Il sistema recupera il piano nutrizionale personalizzato redatto dal nutrizionista e mostra a Luca il piano dettagliato della giornata (colazione, pranzo, cena e spuntini). |
 |  | Luca seleziona un altro giorno della settimana per controllare le indicazioni nutrizionali previste per i giorni successivi. |   |
 |  |   | Il sistema aggiorna la vista a schermo mostrando in dettaglio il piano alimentare per la giornata selezionata. |
- 
+
 
 | **NOME SCENARIO** | SC_PZ_3 CompilaQuestionarioPianoAlimentare |  |
 | :---: | --- | --- |

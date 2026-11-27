@@ -115,13 +115,13 @@ Acronimi:
 
 - DG: Design Goal;
 
-- UI: User Interface; 
+- UI: User Interface;
 
 - HTTP / HTTPS: HyperText Transfer Protocol / HyperText Transfer Protocol Secure;
 
 - JSON: JavaScript Object Notation;
 
-- MVC: Model-View-Controller; 
+- MVC: Model-View-Controller;
 
 - NoSQL: Not Only SQL;
 
@@ -175,9 +175,9 @@ Prefissi delle categorie dei RNF, usati nella notazione RNF_[categoria]_[numero]
 
 ## 1.4 Riferimenti
 
-- **B. Bruegge, A.H. Dutoit**, *Object Oriented Software Engineering - Using UML, Patterns and Java*, Prentice Hall. 
+- **B. Bruegge, A.H. Dutoit**, *Object Oriented Software Engineering - Using UML, Patterns and Java*, Prentice Hall.
 
-- **Documento di Statement of Work (SOW)** relativo al progetto MindCompanion. 
+- **Documento di Statement of Work (SOW)** relativo al progetto MindCompanion.
 
 - **Documento di Requirement Analysis Document (**`C08_RAD`**, v2.0)** relativo al progetto MindCompanion.
 
@@ -185,13 +185,13 @@ Prefissi delle categorie dei RNF, usati nella notazione RNF_[categoria]_[numero]
 
 Il presente documento è organizzato in 5 capitoli:
 
-- **1. Introduzione:** Delinea lo scopo del sistema, definisce gli obiettivi di progettazione (*Design Goals*) derivati dai requisiti non funzionali del RAD e i relativi compromessi progettuali (*Trade-Offs*), ed elenca definizioni, acronimi, abbreviazioni e riferimenti documentali. 
+- **1. Introduzione:** Delinea lo scopo del sistema, definisce gli obiettivi di progettazione (*Design Goals*) derivati dai requisiti non funzionali del RAD e i relativi compromessi progettuali (*Trade-Offs*), ed elenca definizioni, acronimi, abbreviazioni e riferimenti documentali.
 
-- **2. Architettura del sistema Corrente:** Descrive lo stato attuale delle soluzioni digitali esistenti per l'allenamento cognitivo (quali NeuronUP e RehaCom), evidenziando la separazione tra stimolazione cognitiva e gestione clinico-assistenziale che motiva l'adozione del sistema proposto. 
+- **2. Architettura del sistema Corrente:** Descrive lo stato attuale delle soluzioni digitali esistenti per l'allenamento cognitivo (quali NeuronUP e RehaCom), evidenziando la separazione tra stimolazione cognitiva e gestione clinico-assistenziale che motiva l'adozione del sistema proposto.
 
-- **3. Architettura del Sistema Proposto:** Presenta lo stile architetturale *Three-Tier* combinato con il pattern *MVC*, la decomposizione nei sottosistemi di *Presentation Tier* (View), *Application Tier* (Controller e Model con servizio di crittografia AES-256) e *Data Tier* (MongoDB) corredata dai relativi diagrammi, nonché il *Mapping Hardware/Software* e il *Deployment Diagram*. 
+- **3. Architettura del Sistema Proposto:** Presenta lo stile architetturale *Three-Tier* combinato con il pattern *MVC*, la decomposizione nei sottosistemi di *Presentation Tier* (View), *Application Tier* (Controller e Model con servizio di crittografia AES-256) e *Data Tier* (MongoDB) corredata dai relativi diagrammi, nonché il *Mapping Hardware/Software* e il *Deployment Diagram*.
 
-- **4. Gestione dei Dati Persistenti:** Illustra la scelta del DBMS NoSQL orientato ai documenti (MongoDB in formato BSON) e presenta il *Class Diagram ristrutturato*, dettagliando le modifiche apportate rispetto al modello a oggetti del RAD per adattarlo alla persistenza documentale. 
+- **4. Gestione dei Dati Persistenti:** Illustra la scelta del DBMS NoSQL orientato ai documenti (MongoDB in formato BSON) e presenta il *Class Diagram ristrutturato*, dettagliando le modifiche apportate rispetto al modello a oggetti del RAD per adattarlo alla persistenza documentale.
 
 - **5. Glossario:** Raccoglie i termini tecnici e di dominio utilizzati nella stesura del documento con la relativa definizione.
 
@@ -219,11 +219,11 @@ Questa architettura garantisce una separazione netta tra presentazione, logica e
 
 ## 3.2 Decomposizione in sottosistemi
 
-In coerenza con lo stile architetturale Three-Tier combinato con il pattern MVC, MindCompanion adotta un’**architettura stratificata chiusa**. Ogni livello utilizza esclusivamente i servizi offerti dal livello immediatamente sottostante, secondo un flusso di dipendenze strettamente **unidirezionale verso il basso**. 
+In coerenza con lo stile architetturale Three-Tier combinato con il pattern MVC, MindCompanion adotta un’**architettura stratificata chiusa**. Ogni livello utilizza esclusivamente i servizi offerti dal livello immediatamente sottostante, secondo un flusso di dipendenze strettamente **unidirezionale verso il basso**.
 
-**Presentation Tier** (View): Ospita le interfacce web responsive realizzate con React e Next.js, senza accesso diretto ai dati persistenti. È suddiviso in: 
+**Presentation Tier** (View): Ospita le interfacce web responsive realizzate con React e Next.js, senza accesso diretto ai dati persistenti. È suddiviso in:
 
-- GUI Condivisa e Autenticazione: Gestisce accesso, logout e finestre di messaggi o errore comuni a tutti gli attori. 
+- GUI Condivisa e Autenticazione: Gestisce accesso, logout e finestre di messaggi o errore comuni a tutti gli attori.
 
 - GUI per ruolo (GUI Paziente, GUI Tutore, GUI Medico, GUI Nutrizionista, GUI Amministratore): contengono le pagine e i form specifici di ciascun attore, che inviano le richieste ai sottosistemi del Controller.
 
@@ -231,21 +231,21 @@ In coerenza con lo stile architetturale Three-Tier combinato con il pattern MVC,
 
 - Controller (Logica applicativa):
 
-  - Gestione Utenza e Autenticazione: Gestisce login, logout, cambio password, la generazione delle password temporanee, l'esportazione delle credenziali, il cambio obbligatorio al primo accesso, la chiusura delle altre sessioni dopo il cambio password, controllo degli accessi per ruolo, anagrafici utenti e associazioni tra pazienti e figure di supporto nel rispetto delle cardinalità previste. È il modulo trasversale da cui dipendono tutti gli altri sottosistemi di controllo per la verifica dei permessi. 
+  - Gestione Utenza e Autenticazione: Gestisce login, logout, cambio password, la generazione delle password temporanee, l'esportazione delle credenziali, il cambio obbligatorio al primo accesso, la chiusura delle altre sessioni dopo il cambio password, controllo degli accessi per ruolo, anagrafici utenti e associazioni tra pazienti e figure di supporto nel rispetto delle cardinalità previste. È il modulo trasversale da cui dipendono tutti gli altri sottosistemi di controllo per la verifica dei permessi.
 
-  - Gestione Stimolazione Cognitiva: Coordina il ciclo di vita dei piani di stimolazione, l’esecuzione delle sessioni con salvataggio progressivo e il monitoraggio dell’andamento. 
+  - Gestione Stimolazione Cognitiva: Coordina il ciclo di vita dei piani di stimolazione, l’esecuzione delle sessioni con salvataggio progressivo e il monitoraggio dell’andamento.
 
-  - Generatore Esercizi: Sottosistema isolato, invocato da *Gestione Stimolazione Cognitiva*, che genera gli esercizi calibrati sul piano del paziente e ne garantisce l’univocità tramite validatori formali. 
+  - Generatore Esercizi: Sottosistema isolato, invocato da *Gestione Stimolazione Cognitiva*, che genera gli esercizi calibrati sul piano del paziente e ne garantisce l’univocità tramite validatori formali.
 
   - Gestione Questionari: Coordina creazione, invio, salvataggio in bozza, compilazione e consultazione dei questionari informativi e alimentari.
 
-  - Gestione Nutrizionale: Gestisce il ciclo di vita e la consultazione dei piani alimentari, interagendo con *Gestione Questionari* per accedere alle risposte alimentari del paziente. 
+  - Gestione Nutrizionale: Gestisce il ciclo di vita e la consultazione dei piani alimentari, interagendo con *Gestione Questionari* per accedere alle risposte alimentari del paziente.
 
-  - Gestione Centri Territoriali: Gestisce il catalogo verificato dei centri e delle attività, la ricerca per area geografica e l’esclusione degli eventi conclusi. 
+  - Gestione Centri Territoriali: Gestisce il catalogo verificato dei centri e delle attività, la ricerca per area geografica e l’esclusione degli eventi conclusi.
 
-- Model (GestioneDatiPersistenti): È l’unico strato dell’Application Tier che comunica con il database. Organizza le entità di dominio in cinque moduli (UtenzaModel, StimolazioneModel, QuestionariModel, NutrizioneModel, CentriModel) e integra un Servizio Crittografia (AES-256) invocato selettivamente dai moduli che trattano dati sanitari (*StimolazioneModel*, *QuestionariModel* e *NutrizioneModel*), mantenendo interrogabili i dati anagrafici e il catalogo dei centri. 
+- Model (GestioneDatiPersistenti): È l’unico strato dell’Application Tier che comunica con il database. Organizza le entità di dominio in cinque moduli (UtenzaModel, StimolazioneModel, QuestionariModel, NutrizioneModel, CentriModel) e integra un Servizio Crittografia (AES-256) invocato selettivamente dai moduli che trattano dati sanitari (*StimolazioneModel*, *QuestionariModel* e *NutrizioneModel*), mantenendo interrogabili i dati anagrafici e il catalogo dei centri.
 
-**Data Tier**: È costituito dal DBMS NoSQL MongoDB, responsabile della memorizzazione persistente dei documenti in formato BSON. È isolato dall’esterno e accessibile esclusivamente dal livello applicativo tramite il modulo GestioneDatiPersistenti (Model). 
+**Data Tier**: È costituito dal DBMS NoSQL MongoDB, responsabile della memorizzazione persistente dei documenti in formato BSON. È isolato dall’esterno e accessibile esclusivamente dal livello applicativo tramite il modulo GestioneDatiPersistenti (Model).
 
 | **Control (RAD)** | **RF** | **Sottosistema (SDD)** |
 | --- | --- | --- |
@@ -320,7 +320,7 @@ Nota – Ambiente di sviluppo: durante lo sviluppo ogni membro del team esegue u
 
 ## 4.1 Introduzione
 
-Per la gestione dei dati persistenti la scelta è ricaduta su un database NoSQL, ovvero un database non relazionale. La scelta di MongoDB è imposta da RNF_IMP_1 e poiché si adatta inoltre ai dati della piattaforma per la flessibilità e dalla capacità di conservare e gestire più tipi di dati rispetto ad un database relazionale tradizionale. Ogni documento può avere campi diversi e strutture diverse, senza dover andare a modificare l'intera struttura del database. Questo diventa essenziale per la piattaforma MindCompanion nella quale sono presenti strutture dati polimorfiche o annidate (es quesiti diversi per tipologia di esercizio cognitivo, domande e risposte dinamiche dei questionari, documenti aggregati per piano/settimana). 
+Per la gestione dei dati persistenti la scelta è ricaduta su un database NoSQL, ovvero un database non relazionale. La scelta di MongoDB è imposta da RNF_IMP_1 e poiché si adatta inoltre ai dati della piattaforma per la flessibilità e dalla capacità di conservare e gestire più tipi di dati rispetto ad un database relazionale tradizionale. Ogni documento può avere campi diversi e strutture diverse, senza dover andare a modificare l'intera struttura del database. Questo diventa essenziale per la piattaforma MindCompanion nella quale sono presenti strutture dati polimorfiche o annidate (es quesiti diversi per tipologia di esercizio cognitivo, domande e risposte dinamiche dei questionari, documenti aggregati per piano/settimana).
 
 ## 4.2 Class Diagram Ristrutturato
 
@@ -336,7 +336,7 @@ Per la gestione dei dati persistenti la scelta è ricaduta su un database NoSQL,
 
 ![Class Diagram Ristrutturato](images/fig_09.png)
 
-Il metodo getQuestionario(): String[] dell'entità QuestionarioInformativo è stato inserito nell'entità Questionario con il nome getRisposte(): String[]. Il metodo getRisposte(pazienteId: String): String [] è stato inserito così com'è nell'entità questionario. I due metodi facevano sostanzialmente la stessa cosa, ovvero restituire le risposte del questionario, dunque la specializzazione è stata eliminata (in modo da diminuire le dipendenze), venendo sostituita dall'attributo "tipoQuestionario", e si sono creati due metodi dalla diversa implementazione ma dallo stesso nome. Le entità nutrizionista, tutore e amministratore sono state accorpate in Utente e la distinzione tra di esse sostituita con l'attributo ruolo mentre Medico e Paziente restano sottoclassi (hanno attributi e associazioni propri). L'attributo domande: String[] dell'entità Questionario è stato sostituito da un array di sotto-documenti incorporati nel documento del questionario, ciascuno con i campi testo, obbligatoria (boolean) e opzioni (String[]). In questo modo il sistema può validare i campi obbligatori e gestire le risposte a scelta multipla senza una collezione separata. 
+Il metodo getQuestionario(): String[] dell'entità QuestionarioInformativo è stato inserito nell'entità Questionario con il nome getRisposte(): String[]. Il metodo getRisposte(pazienteId: String): String [] è stato inserito così com'è nell'entità questionario. I due metodi facevano sostanzialmente la stessa cosa, ovvero restituire le risposte del questionario, dunque la specializzazione è stata eliminata (in modo da diminuire le dipendenze), venendo sostituita dall'attributo "tipoQuestionario", e si sono creati due metodi dalla diversa implementazione ma dallo stesso nome. Le entità nutrizionista, tutore e amministratore sono state accorpate in Utente e la distinzione tra di esse sostituita con l'attributo ruolo mentre Medico e Paziente restano sottoclassi (hanno attributi e associazioni propri). L'attributo domande: String[] dell'entità Questionario è stato sostituito da un array di sotto-documenti incorporati nel documento del questionario, ciascuno con i campi testo, obbligatoria (boolean) e opzioni (String[]). In questo modo il sistema può validare i campi obbligatori e gestire le risposte a scelta multipla senza una collezione separata.
 
 # 5. Glossario
 
