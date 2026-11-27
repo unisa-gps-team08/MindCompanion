@@ -16,6 +16,21 @@ export const TIPI_PASTO = ["COLAZIONE", "PRANZO", "CENA", "SPUNTINO"] as const;
 export type GiornoSettimana = (typeof GIORNI_SETTIMANA)[number];
 export type TipoPasto = (typeof TIPI_PASTO)[number];
 
+/** Pasto del piano già validato: ogni alimento ha la porzione nella stessa posizione. */
+export type PastoInserito = {
+  giorno: GiornoSettimana;
+  tipo: TipoPasto;
+  alimenti: string[];
+  porzioni: string[];
+};
+
+/** Dati di un piano alimentare da salvare, dopo la validazione lato server. */
+export type NuovoPianoAlimentare = {
+  raccomandazioniIdriche?: string;
+  raccomandazioniNutrizionali?: string;
+  pasti: PastoInserito[];
+};
+
 export const ETICHETTE_GIORNO: Record<GiornoSettimana, string> = {
   LUNEDI: "Lunedì",
   MARTEDI: "Martedì",

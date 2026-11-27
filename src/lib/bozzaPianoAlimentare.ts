@@ -1,5 +1,10 @@
-import { chiavePasto, GIORNI_SETTIMANA, TIPI_PASTO } from "@/lib/pianoAlimentare";
-import type { NuovoPianoAlimentare, PastoInserito } from "@/lib/validazionePianoAlimentare";
+import {
+  chiavePasto,
+  GIORNI_SETTIMANA,
+  TIPI_PASTO,
+  type NuovoPianoAlimentare,
+  type PastoInserito,
+} from "@/lib/pianoAlimentare";
 
 // Stato del form CreaPianoAlimentare: una lista di voci (alimento e porzione) per ogni
 // giorno e tipo di pasto, più le raccomandazioni.

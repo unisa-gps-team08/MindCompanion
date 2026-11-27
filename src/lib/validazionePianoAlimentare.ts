@@ -5,25 +5,16 @@ import {
   GIORNI_SETTIMANA,
   TIPI_PASTO,
   type GiornoSettimana,
+  type NuovoPianoAlimentare,
+  type PastoInserito,
   type TipoPasto,
 } from "@/lib/pianoAlimentare";
+
+export type { NuovoPianoAlimentare, PastoInserito };
 
 export const MAX_LUNGHEZZA_RACCOMANDAZIONI = 2000;
 export const MAX_LUNGHEZZA_VOCE = 200;
 export const MAX_ALIMENTI_PER_PASTO = 30;
-
-export type PastoInserito = {
-  giorno: GiornoSettimana;
-  tipo: TipoPasto;
-  alimenti: string[];
-  porzioni: string[];
-};
-
-export type NuovoPianoAlimentare = {
-  raccomandazioniIdriche?: string;
-  raccomandazioniNutrizionali?: string;
-  pasti: PastoInserito[];
-};
 
 /**
  * Errori per campo. Le chiavi sono "raccomandazioniIdriche", "raccomandazioniNutrizionali",

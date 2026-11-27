@@ -90,7 +90,7 @@ export function CreaPianoAlimentareForm({ pazienteId }: { pazienteId: string }) 
     setMessaggio(null);
     setInCorso(true);
     try {
-      const risposta = await fetch(`/api/nutrizionista/pazienti/${encodeURIComponent(pazienteId)}/piano-alimentare`, {
+      const risposta = await fetch(`/api/nutritionist/patients/${encodeURIComponent(pazienteId)}/meal-plan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(esito.valori),

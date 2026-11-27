@@ -1,7 +1,6 @@
 import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
 import { cifra, decifra } from "@/db/crittografia";
-import { GIORNI_SETTIMANA, TIPI_PASTO } from "@/lib/pianoAlimentare";
-import type { NuovoPianoAlimentare } from "@/lib/validazionePianoAlimentare";
+import { GIORNI_SETTIMANA, TIPI_PASTO, type NuovoPianoAlimentare } from "@/lib/pianoAlimentare";
 
 // Le liste di giorni e tipi di pasto stanno in src/lib/pianoAlimentare.ts perché le usa
 // anche la View, che non può importare da @/db.
