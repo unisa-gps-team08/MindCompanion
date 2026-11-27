@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { Avviso } from "@/components/Avviso";
 import { PastoFieldset } from "@/components/PastoFieldset";
 import { RaccomandazioniPiano, type Raccomandazione } from "@/components/RaccomandazioniPiano";
 import { idScheda, SchedeGiorni } from "@/components/SchedeGiorni";
@@ -136,6 +137,11 @@ export function CreaPianoAlimentareForm({ pazienteId }: { pazienteId: string }) 
       noValidate
       className="flex min-w-0 flex-col gap-6"
     >
+      {/* UC_NT_1, flusso 4.a1: il questionario alimentare non è in questo sprint. */}
+      <Avviso tipo="informazione">
+        Le risposte al questionario alimentare non sono ancora disponibili. Puoi comunque compilare
+        e pubblicare il piano alimentare del paziente.
+      </Avviso>
       <section aria-labelledby="titolo-pasti" className="flex flex-col gap-4">
         <h2 id="titolo-pasti" className="text-xl font-semibold">
           Pasti della settimana

@@ -4,9 +4,9 @@ import { creaPianoAlimentare, leggiPianoAlimentare, PianoAlimentare } from "@/db
 import { richiediRuolo } from "@/lib/autorizzazione";
 import { validaPianoAlimentare } from "@/lib/validazionePianoAlimentare";
 
-// Stesso messaggio per un id inesistente e per un paziente di un altro nutrizionista:
-// la risposta non rivela se il paziente esiste.
-const MESSAGGIO_PAZIENTE_NON_TROVATO = "Paziente non trovato tra i tuoi pazienti.";
+// Come la scheda paziente (RF_NT_6): 403 con lo stesso messaggio per id non valido, paziente
+// inesistente o associato a un altro nutrizionista, così la risposta non rivela se esiste.
+const MESSAGGIO_PAZIENTE_NON_ASSOCIATO = "Accesso negato: il paziente non è associato al tuo profilo.";
 const MESSAGGIO_PIANO_ESISTENTE =
   "Il paziente ha già un piano alimentare. Per cambiarlo usa Modifica piano alimentare.";
 const REGEX_ID = /^[a-f0-9]{24}$/i;
@@ -26,7 +26,7 @@ export async function POST(request: Request, { params }: Contesto) {
 
   const { id } = await params;
   if (!REGEX_ID.test(id)) {
-    return Response.json({ errore: MESSAGGIO_PAZIENTE_NON_TROVATO }, { status: 404 });
+    return Response.json({ errore: MESSAGGIO_PAZIENTE_NON_ASSOCIATO }, { status: 403 });
   }
 
   const esito = validaPianoAlimentare(await request.json().catch(() => null));
@@ -38,7 +38,7 @@ export async function POST(request: Request, { params }: Contesto) {
     await connectDB();
     const paziente = await Paziente.exists({ _id: id, nutrizionista: utente._id });
     if (!paziente) {
-      return Response.json({ errore: MESSAGGIO_PAZIENTE_NON_TROVATO }, { status: 404 });
+      return Response.json({ errore: MESSAGGIO_PAZIENTE_NON_ASSOCIATO }, { status: 403 });
     }
     if (await PianoAlimentare.exists({ paziente: id })) {
       return Response.json({ errore: MESSAGGIO_PIANO_ESISTENTE }, { status: 409 });
