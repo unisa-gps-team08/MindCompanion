@@ -1,51 +1,98 @@
-import { Types } from "mongoose";
+import mongoose, { Types, type ClientSession } from "mongoose";
 import { Paziente } from "@/db/models/Paziente";
 import { PianoAlimentare } from "@/db/models/PianoAlimentare";
 import { SessioneAccesso } from "@/db/models/SessioneAccesso";
 import { Utente, type Ruolo } from "@/db/models/Utente";
+
+// Codice MongoDB (IllegalOperation) restituito da un'istanza standalone che non supporta transazioni.
+const CODICE_TRANSAZIONE_NON_SUPPORTATA = 20;
 
 export type EsitoEliminazioneUtente =
   | { esito: "eliminato"; id: string }
   | { esito: "non_trovato" }
   | { esito: "non_eliminabile" };
 
+function isTransazioneNonSupportata(errore: unknown): boolean {
+  if (typeof errore !== "object" || errore === null) return false;
+  const codice = "code" in errore ? errore.code : undefined;
+  const messaggio = "message" in errore && typeof errore.message === "string" ? errore.message : "";
+  return codice === CODICE_TRANSAZIONE_NON_SUPPORTATA && messaggio.includes("replica set");
+}
+
 /** Rimuove i riferimenti dell'utente da tutti i pazienti associati per evitare associazioni orfane. */
-async function rimuoviAssociazioni(utenteId: Types.ObjectId, ruolo: Ruolo): Promise<void> {
+async function rimuoviAssociazioni(
+  utenteId: Types.ObjectId,
+  ruolo: Ruolo,
+  session?: ClientSession,
+): Promise<void> {
+  const opzioni = session ? { session } : {};
   if (ruolo === "MEDICO") {
-    await Paziente.updateMany({ medico: utenteId }, { $set: { medico: null } });
+    await Paziente.updateMany({ medico: utenteId }, { $set: { medico: null } }, opzioni);
     return;
   }
   if (ruolo === "NUTRIZIONISTA") {
-    await Paziente.updateMany({ nutrizionista: utenteId }, { $set: { nutrizionista: null } });
+    await Paziente.updateMany({ nutrizionista: utenteId }, { $set: { nutrizionista: null } }, opzioni);
     return;
   }
   if (ruolo === "TUTORE") {
-    await Paziente.updateMany({ tutori: utenteId }, { $pull: { tutori: utenteId } });
+    await Paziente.updateMany({ tutori: utenteId }, { $pull: { tutori: utenteId } }, opzioni);
   }
+}
+
+async function eseguiEliminazione(
+  utenteId: Types.ObjectId,
+  id: string,
+  session?: ClientSession,
+): Promise<EsitoEliminazioneUtente> {
+  const opzioni = session ? { session } : {};
+  const utente = await Utente.findById(utenteId, "ruolo", opzioni).lean();
+  if (!utente) return { esito: "non_trovato" };
+  if (utente.ruolo === "AMMINISTRATORE") return { esito: "non_eliminabile" };
+
+  // Si rimuovono prima riferimenti, piani e sessioni: se un'operazione fallisce fuori transazione,
+  // il documento utente resta presente e consente di ripetere la richiesta senza lasciare orfani.
+  await rimuoviAssociazioni(utenteId, utente.ruolo, session);
+
+  if (utente.ruolo === "PAZIENTE") {
+    // TODO(RF_AD_3): rimuovere anche PianoStimolazione e SessioneStimolazione
+    // quando i relativi model Mongoose saranno presenti in src/db/models/.
+    await PianoAlimentare.deleteMany({ paziente: utenteId }, opzioni);
+  }
+
+  await SessioneAccesso.deleteMany({ utente: utenteId }, opzioni);
+  const eliminazione = await Utente.deleteOne({ _id: utenteId, ruolo: { $ne: "AMMINISTRATORE" } }, opzioni);
+  if (eliminazione.deletedCount === 0) return { esito: "non_trovato" };
+
+  // In assenza di transazione (MongoDB standalone), un secondo passaggio idempotente dopo la
+  // rimozione dell'utente elimina eventuali riferimenti inseriti in concorrenza da RF_AD_8.
+  if (!session) {
+    await rimuoviAssociazioni(utenteId, utente.ruolo);
+  }
+
+  return { esito: "eliminato", id };
 }
 
 /**
  * Elimina un utente non amministratore dalla piattaforma (RF_AD_3).
- * Ripulisce le associazioni sui pazienti, l'eventuale piano alimentare e le sessioni attive
- * prima di rimuovere il documento Utente, così un eventuale retry resta idempotente.
+ * Esegue pulizia delle associazioni, dei piani collegati, delle sessioni attive e del documento
+ * Utente in una transazione atomica quando MongoDB opera in replica set; su istanze standalone
+ * (es. Docker Compose locale) ricade su una sequenza idempotente con pulizia finale anti-orfani.
  */
 export async function eliminaUtente(id: string): Promise<EsitoEliminazioneUtente> {
   const utenteId = new Types.ObjectId(id);
-  const utente = await Utente.findById(utenteId).select("ruolo").lean();
-  if (!utente) return { esito: "non_trovato" };
-  if (utente.ruolo === "AMMINISTRATORE") return { esito: "non_eliminabile" };
-
-  // Si rimuovono prima riferimenti, piani e sessioni: se un'operazione fallisce,
-  // il documento utente resta presente e consente di ripetere la richiesta senza lasciare orfani.
-  await rimuoviAssociazioni(utenteId, utente.ruolo);
-
-  if (utente.ruolo === "PAZIENTE") {
-    // Settimana prossima con le successive task verrà aggiornata elimina utente includendo anche il piano di stimolazione e piano alimentare a lui associato
-    await PianoAlimentare.deleteMany({ paziente: utenteId });
+  const session = await mongoose.startSession();
+  try {
+    let esito: EsitoEliminazioneUtente = { esito: "non_trovato" };
+    await session.withTransaction(async () => {
+      esito = await eseguiEliminazione(utenteId, id, session);
+    });
+    return esito;
+  } catch (errore: unknown) {
+    if (isTransazioneNonSupportata(errore)) {
+      return eseguiEliminazione(utenteId, id);
+    }
+    throw errore;
+  } finally {
+    await session.endSession();
   }
-
-  await SessioneAccesso.deleteMany({ utente: utenteId });
-  await Utente.deleteOne({ _id: utenteId });
-
-  return { esito: "eliminato", id };
 }

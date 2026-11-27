@@ -25,7 +25,7 @@ type EliminaUtenteDialogProps = {
   utente: UtenteAnagrafico | null;
   onChiudi: () => void;
   onEliminato: (utente: UtenteAnagrafico) => void;
-  onErrore: (messaggio: string) => void;
+  onNonTrovato: (utente: UtenteAnagrafico, messaggio: string) => void;
   onSessioneScaduta: () => void;
 };
 
@@ -34,7 +34,7 @@ export function EliminaUtenteDialog({
   utente,
   onChiudi,
   onEliminato,
-  onErrore,
+  onNonTrovato,
   onSessioneScaduta,
 }: EliminaUtenteDialogProps) {
   const [inCorso, setInCorso] = useState(false);
@@ -66,19 +66,21 @@ export function EliminaUtenteDialog({
       }
 
       const dati = (await risposta.json().catch(() => ({}))) as RispostaEliminazione;
+      if (risposta.status === 404) {
+        setErrore(null);
+        onNonTrovato(utente, dati.errore ?? "Utente non trovato.");
+        return;
+      }
+
       if (!risposta.ok) {
-        const messaggio = dati.errore ?? "Impossibile eliminare l'utente, riprova.";
-        setErrore(messaggio);
-        onErrore(messaggio);
+        setErrore(dati.errore ?? "Impossibile eliminare l'utente, riprova.");
         return;
       }
 
       setErrore(null);
       onEliminato(utente);
     } catch {
-      const messaggio = "Servizio non raggiungibile, controlla la connessione e riprova.";
-      setErrore(messaggio);
-      onErrore(messaggio);
+      setErrore("Servizio non raggiungibile, controlla la connessione e riprova.");
     } finally {
       setInCorso(false);
     }

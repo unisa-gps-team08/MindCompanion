@@ -107,7 +107,10 @@ export function ElencoUtentiPage() {
     });
   }
 
-  function gestisciErroreEliminazione(messaggio: string) {
+  function gestisciUtenteNonTrovato(nonTrovato: UtenteAnagrafico, messaggio: string) {
+    setUtenteDaEliminare(null);
+    setUtenti((precedenti) => precedenti.filter((u) => u.id !== nonTrovato.id));
+    setTentativo((precedente) => precedente + 1);
     setToast({ id: Date.now(), tipo: "errore", messaggio });
   }
 
@@ -202,7 +205,7 @@ export function ElencoUtentiPage() {
           utente={utenteDaEliminare}
           onChiudi={() => setUtenteDaEliminare(null)}
           onEliminato={gestisciEliminato}
-          onErrore={gestisciErroreEliminazione}
+          onNonTrovato={gestisciUtenteNonTrovato}
           onSessioneScaduta={() => router.replace("/login")}
         />
         <ToastEsito toast={toast} onChiudi={chiudiToast} />
