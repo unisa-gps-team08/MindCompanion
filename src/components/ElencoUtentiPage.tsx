@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { EliminaUtenteDialog } from "@/components/EliminaUtenteButton";
 import { LogoutButton } from "@/components/LogoutButton";
 import { ETICHETTE_RUOLO, TabellaUtenti } from "@/components/TabellaUtenti";
+import { ToastEsito, type DatiToast } from "@/components/ToastEsito";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   LUNGHEZZA_MASSIMA_RICERCA,
@@ -30,6 +32,8 @@ export function ElencoUtentiPage() {
   const [inCaricamento, setInCaricamento] = useState(true);
   const [errore, setErrore] = useState<string | null>(null);
   const [tentativo, setTentativo] = useState(0);
+  const [utenteDaEliminare, setUtenteDaEliminare] = useState<UtenteAnagrafico | null>(null);
+  const [toast, setToast] = useState<DatiToast | null>(null);
 
   // Debounce della ricerca testuale per evitare una chiamata API a ogni singolo carattere.
   useEffect(() => {
@@ -88,6 +92,26 @@ export function ElencoUtentiPage() {
 
   function riprova() {
     setTentativo((precedente) => precedente + 1);
+  }
+
+  const chiudiToast = useCallback(() => setToast(null), []);
+
+  function gestisciEliminato(eliminato: UtenteAnagrafico) {
+    setUtenteDaEliminare(null);
+    setUtenti((precedenti) => precedenti.filter((u) => u.id !== eliminato.id));
+    setTentativo((precedente) => precedente + 1);
+    setToast({
+      id: Date.now(),
+      tipo: "successo",
+      messaggio: `Utente ${eliminato.nome} ${eliminato.cognome} eliminato con successo.`,
+    });
+  }
+
+  function gestisciUtenteNonTrovato(nonTrovato: UtenteAnagrafico, messaggio: string) {
+    setUtenteDaEliminare(null);
+    setUtenti((precedenti) => precedenti.filter((u) => u.id !== nonTrovato.id));
+    setTentativo((precedente) => precedente + 1);
+    setToast({ id: Date.now(), tipo: "errore", messaggio });
   }
 
   const haFiltriAttivi = search.trim().length > 0 || role.length > 0;
@@ -173,7 +197,18 @@ export function ElencoUtentiPage() {
           inCaricamento={inCaricamento}
           haFiltriAttivi={haFiltriAttivi}
           onAzzeraFiltri={azzeraFiltri}
+          onRichiediEliminazione={setUtenteDaEliminare}
         />
+
+        <EliminaUtenteDialog
+          key={utenteDaEliminare?.id ?? "chiuso"}
+          utente={utenteDaEliminare}
+          onChiudi={() => setUtenteDaEliminare(null)}
+          onEliminato={gestisciEliminato}
+          onNonTrovato={gestisciUtenteNonTrovato}
+          onSessioneScaduta={() => router.replace("/login")}
+        />
+        <ToastEsito toast={toast} onChiudi={chiudiToast} />
       </main>
     </div>
   );

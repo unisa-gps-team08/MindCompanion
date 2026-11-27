@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { CircleX } from "lucide-react";
+import { Avviso } from "@/components/Avviso";
 import { BreadcrumbHeader } from "@/components/BreadcrumbHeader";
 import { SidebarApplicazione } from "@/components/SidebarApplicazione";
 import { Button } from "@/components/ui/button";
@@ -99,13 +99,18 @@ export function LayoutAreaRiservata({ children }: LayoutAreaRiservataProps) {
             "--sidebar-width": modalitaPaziente ? "17.5rem" : "16.5rem",
           } as CSSProperties
         }
-        className="print:[&_[data-slot=sidebar]]:hidden"
+        className="h-svh overflow-hidden print:h-auto print:overflow-visible print:[&_[data-slot=sidebar]]:hidden"
       >
-        <SidebarApplicazione utente={utente} inCaricamento={inCaricamento} />
-        <SidebarInset>
+        <SidebarApplicazione
+          utente={utente}
+          inCaricamento={inCaricamento}
+          className="z-20"
+        />
+        {/* Layout bloccato a 100svh con min-w-0: scorre solo il contenuto interno, tenendo fissa la barra in alto senza sovrapporsi alla sidebar. */}
+        <SidebarInset className="h-svh min-w-0 overflow-hidden print:h-auto print:overflow-visible">
           <header
             className={cn(
-              "sticky top-0 z-20 flex shrink-0 items-center gap-2 border-b border-border/80 bg-card/90 px-4 backdrop-blur-xs print:hidden md:px-6",
+              "z-10 flex shrink-0 items-center gap-2 border-b border-border/80 bg-card px-4 print:hidden md:px-6",
               modalitaPaziente ? "h-18" : "h-16",
             )}
           >
@@ -132,34 +137,30 @@ export function LayoutAreaRiservata({ children }: LayoutAreaRiservataProps) {
 
           <div
             className={cn(
-              "flex flex-1 flex-col gap-5 p-4 md:p-6 lg:p-8",
+              "flex min-h-0 min-w-0 flex-1 flex-col gap-5 overflow-x-hidden overflow-y-auto p-4 print:overflow-visible md:p-6 lg:p-8",
               modalitaPaziente && "text-lg text-foreground",
             )}
           >
             {errore && (
-              <div
-                role="alert"
-                className={cn(
-                  "flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-medium text-red-800 shadow-2xs",
-                  modalitaPaziente ? "text-lg" : "text-base",
-                )}
+              <Avviso
+                tipo="errore"
+                className={cn("shadow-2xs", modalitaPaziente && "text-lg")}
+                azione={
+                  <Button
+                    variant="outline"
+                    size={modalitaPaziente ? "lg" : "sm"}
+                    onClick={riprova}
+                    className={cn(
+                      "transition-transform duration-150 active:scale-[.985] motion-reduce:transform-none",
+                      modalitaPaziente && "h-11 px-4 text-lg",
+                    )}
+                  >
+                    Riprova
+                  </Button>
+                }
               >
-                <div className="flex items-center gap-2.5">
-                  <CircleX aria-hidden="true" className="size-5 shrink-0" />
-                  <span>{errore}</span>
-                </div>
-                <Button
-                  variant="outline"
-                  size={modalitaPaziente ? "lg" : "sm"}
-                  onClick={riprova}
-                  className={cn(
-                    "transition-transform duration-150 active:scale-[.985] motion-reduce:transform-none",
-                    modalitaPaziente && "h-11 px-4 text-lg",
-                  )}
-                >
-                  Riprova
-                </Button>
-              </div>
+                {errore}
+              </Avviso>
             )}
             {children}
           </div>

@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { Campo } from "@/components/CampoForm";
 import { CredenzialiDialog, type Credenziali } from "@/components/CredenzialiDialog";
+import { Avviso } from "@/components/Avviso";
 import { Button } from "@/components/ui/button";
 import { RUOLI_REGISTRABILI, type ErroriCampi } from "@/lib/validazioneNuovoUtente";
 
@@ -86,8 +87,8 @@ export function InserisciUtenteForm() {
   if (credenziali) return <CredenzialiDialog credenziali={credenziali} onChiudi={() => setCredenziali(null)} />;
 
   return (
-    <form onSubmit={conferma} className="flex flex-col gap-4 text-lg">
-      <div className="grid gap-4 sm:grid-cols-2">
+    <form onSubmit={conferma} className="flex flex-col gap-6">
+      <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
         <Campo etichetta="Nome" required autoComplete="off" {...propsCampo("nome")} />
         <Campo etichetta="Cognome" required autoComplete="off" {...propsCampo("cognome")} />
         <Campo etichetta="E-mail" type="email" required autoComplete="off" {...propsCampo("email")} />
@@ -102,15 +103,16 @@ export function InserisciUtenteForm() {
         />
         <Campo etichetta="Data di nascita" type="date" required {...propsCampo("dataNascita")} />
 
-        <label className="flex flex-col gap-1">
-          Ruolo
+        {/* Stesso aspetto di Campo (CampoForm), per un select nativo accessibile da tastiera. */}
+        <label className="flex flex-col gap-1.5">
+          <span className="text-base font-medium">Ruolo</span>
           <select
             name="ruolo"
             required
             value={valori.ruolo}
             onChange={(e) => aggiorna("ruolo", e.target.value)}
             aria-invalid={errori.ruolo ? true : undefined}
-            className="rounded-lg border px-3 py-2 aria-invalid:border-red-700"
+            className="h-12 rounded-lg border border-input bg-background px-3 text-lg shadow-xs transition-[border-color,box-shadow] outline-none hover:border-foreground/30 focus-visible:border-foreground/60 focus-visible:ring-3 focus-visible:ring-ring/40 aria-invalid:border-destructive aria-invalid:ring-destructive/15"
           >
             <option value="" disabled>
               Seleziona…
@@ -121,7 +123,7 @@ export function InserisciUtenteForm() {
               </option>
             ))}
           </select>
-          {errori.ruolo && <span className="text-sm text-red-700">{errori.ruolo}</span>}
+          {errori.ruolo && <span className="text-sm font-medium text-destructive">{errori.ruolo}</span>}
         </label>
 
         {valori.ruolo === "MEDICO" && (
@@ -132,11 +134,7 @@ export function InserisciUtenteForm() {
         )}
       </div>
 
-      {esito && (
-        <p role="alert" className="text-red-700">
-          {esito.messaggio}
-        </p>
-      )}
+      {esito && <Avviso tipo="errore">{esito.messaggio}</Avviso>}
 
       <div>
         <Button type="submit" size="lg" disabled={inCorso}>

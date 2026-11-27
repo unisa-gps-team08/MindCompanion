@@ -202,7 +202,7 @@ export function MenuUtente({ utente, modalitaPaziente }: MenuUtenteProps) {
           <p
             role="alert"
             className={cn(
-              "mt-1.5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-medium text-red-800 group-data-[collapsible=icon]:hidden",
+              "mt-1.5 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 font-medium text-destructive group-data-[collapsible=icon]:hidden",
               modalitaPaziente ? "text-lg" : "text-xs",
             )}
           >
