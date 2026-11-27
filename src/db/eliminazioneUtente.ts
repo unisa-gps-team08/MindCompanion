@@ -6,6 +6,8 @@ import { Utente, type Ruolo } from "@/db/models/Utente";
 
 // Codice MongoDB (IllegalOperation) restituito da un'istanza standalone che non supporta transazioni.
 const CODICE_TRANSAZIONE_NON_SUPPORTATA = 20;
+const COLLEZIONE_PIANI_STIMOLAZIONE = "pianiStimolazione";
+const COLLEZIONE_SESSIONI_STIMOLAZIONE = "sessioniStimolazione";
 
 export type EsitoEliminazioneUtente =
   | { esito: "eliminato"; id: string }
@@ -39,6 +41,23 @@ async function rimuoviAssociazioni(
   }
 }
 
+/** Rimuove piani e sessioni cliniche collegati a un paziente per evitare documenti orfani. */
+async function rimuoviDatiPaziente(
+  utenteId: Types.ObjectId,
+  session?: ClientSession,
+): Promise<void> {
+  const opzioni = session ? { session } : {};
+  await PianoAlimentare.deleteMany({ paziente: utenteId }, opzioni);
+  // Piani e sessioni di stimolazione non hanno ancora un model Mongoose dedicato:
+  // si puliscono direttamente le collezioni definite in src/db/setup/schema/.
+  await mongoose.connection
+    .collection(COLLEZIONE_PIANI_STIMOLAZIONE)
+    .deleteMany({ paziente: utenteId }, opzioni);
+  await mongoose.connection
+    .collection(COLLEZIONE_SESSIONI_STIMOLAZIONE)
+    .deleteMany({ paziente: utenteId }, opzioni);
+}
+
 async function eseguiEliminazione(
   utenteId: Types.ObjectId,
   id: string,
@@ -54,9 +73,7 @@ async function eseguiEliminazione(
   await rimuoviAssociazioni(utenteId, utente.ruolo, session);
 
   if (utente.ruolo === "PAZIENTE") {
-    // TODO(RF_AD_3): rimuovere anche PianoStimolazione e SessioneStimolazione
-    // quando i relativi model Mongoose saranno presenti in src/db/models/.
-    await PianoAlimentare.deleteMany({ paziente: utenteId }, opzioni);
+    await rimuoviDatiPaziente(utenteId, session);
   }
 
   await SessioneAccesso.deleteMany({ utente: utenteId }, opzioni);
@@ -64,9 +81,12 @@ async function eseguiEliminazione(
   if (eliminazione.deletedCount === 0) return { esito: "non_trovato" };
 
   // In assenza di transazione (MongoDB standalone), un secondo passaggio idempotente dopo la
-  // rimozione dell'utente elimina eventuali riferimenti inseriti in concorrenza da RF_AD_8.
+  // rimozione dell'utente elimina eventuali riferimenti o piani inseriti in concorrenza.
   if (!session) {
     await rimuoviAssociazioni(utenteId, utente.ruolo);
+    if (utente.ruolo === "PAZIENTE") {
+      await rimuoviDatiPaziente(utenteId);
+    }
   }
 
   return { esito: "eliminato", id };
