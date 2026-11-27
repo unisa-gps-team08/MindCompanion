@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, type FormEvent, type InputHTMLAttributes } from "react";
+import { useState, type FormEvent } from "react";
+import { Campo } from "@/components/CampoForm";
 import { CredenzialiDialog, type Credenziali } from "@/components/CredenzialiDialog";
 import { Button } from "@/components/ui/button";
 import { RUOLI_REGISTRABILI, type ErroriCampi } from "@/lib/validazioneNuovoUtente";
 
-const ETICHETTE_RUOLO: Record<(typeof RUOLI_REGISTRABILI)[number], string> = {
+export const ETICHETTE_RUOLO: Record<(typeof RUOLI_REGISTRABILI)[number], string> = {
   PAZIENTE: "Paziente",
   MEDICO: "Medico",
   NUTRIZIONISTA: "Nutrizionista",
@@ -25,27 +26,6 @@ const VALORI_INIZIALI = {
 
 type NomeCampo = keyof typeof VALORI_INIZIALI;
 type Esito = { tipo: "errore"; messaggio: string } | null;
-
-type CampoProps = InputHTMLAttributes<HTMLInputElement> & {
-  etichetta: string;
-  nome: NomeCampo;
-  errore?: string;
-};
-
-function Campo({ etichetta, nome, errore, ...input }: CampoProps) {
-  return (
-    <label className="flex flex-col gap-1">
-      {etichetta}
-      <input
-        name={nome}
-        aria-invalid={errore ? true : undefined}
-        className="rounded-lg border px-3 py-2 aria-invalid:border-red-700"
-        {...input}
-      />
-      {errore && <span className="text-sm text-red-700">{errore}</span>}
-    </label>
-  );
-}
 
 // InserisciUtenteForm (RF_AD_1): registrazione di un nuovo utente da parte dell'amministratore.
 // Non ha campi password: la password temporanea la genera il sistema.

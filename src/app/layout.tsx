@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Libre_Franklin, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Coppia di font per un'app sanitaria sobria e leggibile: serif per i titoli, sans per il
+// testo. I token --font-heading e --font-sans di globals.css li leggono da qui.
+const fontTitoli = Source_Serif_4({
+  variable: "--font-titoli",
+  subsets: ["latin"],
+});
+
+const fontTesto = Libre_Franklin({
+  variable: "--font-testo",
   subsets: ["latin"],
 });
 
@@ -20,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="it"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fontTitoli.variable} ${fontTesto.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
