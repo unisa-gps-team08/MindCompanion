@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronsUpDownIcon, KeyRoundIcon, LogOutIcon } from "lucide-react";
+import { ChevronsUpDownIcon, KeyRoundIcon, LogOutIcon, CircleX } from "lucide-react";
+import { AvatarUtente } from "@/components/PannelloMenuUtente";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,

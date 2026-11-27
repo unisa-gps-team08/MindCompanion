@@ -1,4 +1,7 @@
-import { ElencoUtentiPage } from "@/components/ElencoUtentiPage";
+
+import Link from "next/link";
+import { AreaProvvisoria } from "@/components/AreaProvvisoria";
+import { buttonVariants } from "@/components/ui/button";
 
 // Pagina iniziale dell'area amministratore: VisualizzaElencoUtenti (RF_AD_7).
 export default function AreaAmministratorePage() {
