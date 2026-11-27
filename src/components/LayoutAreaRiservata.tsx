@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { CircleX } from "lucide-react";
+import { Avviso } from "@/components/Avviso";
 import { BreadcrumbHeader } from "@/components/BreadcrumbHeader";
 import { SidebarApplicazione } from "@/components/SidebarApplicazione";
 import { Button } from "@/components/ui/button";
@@ -137,29 +137,25 @@ export function LayoutAreaRiservata({ children }: LayoutAreaRiservataProps) {
             )}
           >
             {errore && (
-              <div
-                role="alert"
-                className={cn(
-                  "flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-medium text-red-800 shadow-2xs",
-                  modalitaPaziente ? "text-lg" : "text-base",
-                )}
+              <Avviso
+                tipo="errore"
+                className={cn("shadow-2xs", modalitaPaziente && "text-lg")}
+                azione={
+                  <Button
+                    variant="outline"
+                    size={modalitaPaziente ? "lg" : "sm"}
+                    onClick={riprova}
+                    className={cn(
+                      "transition-transform duration-150 active:scale-[.985] motion-reduce:transform-none",
+                      modalitaPaziente && "h-11 px-4 text-lg",
+                    )}
+                  >
+                    Riprova
+                  </Button>
+                }
               >
-                <div className="flex items-center gap-2.5">
-                  <CircleX aria-hidden="true" className="size-5 shrink-0" />
-                  <span>{errore}</span>
-                </div>
-                <Button
-                  variant="outline"
-                  size={modalitaPaziente ? "lg" : "sm"}
-                  onClick={riprova}
-                  className={cn(
-                    "transition-transform duration-150 active:scale-[.985] motion-reduce:transform-none",
-                    modalitaPaziente && "h-11 px-4 text-lg",
-                  )}
-                >
-                  Riprova
-                </Button>
-              </div>
+                {errore}
+              </Avviso>
             )}
             {children}
           </div>
