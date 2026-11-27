@@ -1,12 +1,14 @@
 import { connectDB } from "@/db/connect";
 import { Medico } from "@/db/models/Medico";
 import { Paziente } from "@/db/models/Paziente";
-import { Utente } from "@/db/models/Utente";
+import { cercaUtenti, Utente } from "@/db/models/Utente";
 import { calcolaHashPassword, generaPasswordTemporanea } from "@/db/password";
 import { richiediRuolo } from "@/lib/autorizzazione";
 import { validaNuovoUtente, type ErroriCampi, type NuovoUtente } from "@/lib/validazioneNuovoUtente";
+import { validaRicercaUtenti } from "@/lib/validazioneRicercaUtenti";
 
 const MESSAGGIO_DUPLICATO = "Esiste già un utente con questa e-mail o con questo codice fiscale.";
+const INTESTAZIONI_NO_CACHE = { "Cache-Control": "no-store" };
 
 /** Indica quali campi univoci sono già usati da un altro utente. */
 async function trovaDuplicati(email: string, codiceFiscale: string): Promise<ErroriCampi | null> {
@@ -32,12 +34,39 @@ async function salvaUtente(valori: NuovoUtente, password: string) {
 
   if (valori.ruolo === "MEDICO") return Medico.create({ ...documento, codiceMedico, specializzazione });
   if (valori.ruolo === "PAZIENTE") return Paziente.create(documento);
-  return Utente.create(documento);
+  // Tutore, Nutrizionista e Amministratore non hanno un discriminator: Utente.create() con
+  // ruolo "TUTORE" cerca il discriminator e fallisce. new Utente() salva nel model base.
+  return new Utente(documento).save();
 }
 
 // Due inserimenti quasi contemporanei possono superare trovaDuplicati: l'indice univoco li blocca.
 function isChiaveDuplicata(errore: unknown): boolean {
   return typeof errore === "object" && errore !== null && "code" in errore && errore.code === 11000;
+}
+
+// VisualizzaElencoUtentiControl (RF_AD_7): solo l'amministratore consulta l'elenco utenti
+// filtrabile per testo anagrafico (`search`) e ruolo (`role`), con soli campi anagrafici
+// ed escludendo sé stesso dall'elenco.
+export async function GET(request: Request) {
+  const { utente, risposta } = await richiediRuolo("AMMINISTRATORE");
+  if (risposta) return risposta;
+
+  const { searchParams } = new URL(request.url);
+  const esito = validaRicercaUtenti(searchParams);
+  if (!esito.valido) {
+    return Response.json({ errore: esito.errore }, { status: 400, headers: INTESTAZIONI_NO_CACHE });
+  }
+
+  try {
+    await connectDB();
+    const utenti = await cercaUtenti(esito.filtro, utente._id.toString());
+    return Response.json({ utenti }, { headers: INTESTAZIONI_NO_CACHE });
+  } catch {
+    return Response.json(
+      { errore: "Servizio non disponibile, riprova più tardi." },
+      { status: 503, headers: INTESTAZIONI_NO_CACHE },
+    );
+  }
 }
 
 // InserisciUtenteControl (RF_AD_1): solo l'amministratore registra nuovi utenti (RNF_FUN_3).

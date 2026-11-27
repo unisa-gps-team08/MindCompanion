@@ -184,7 +184,7 @@ export function ModificaUtenteForm() {
       </div>
 
       <div className="flex flex-col-reverse gap-3 border-t bg-muted/50 px-6 py-4 sm:flex-row sm:justify-end">
-        {/* Provvisorio: tornerà all'elenco utenti (RF_AD_7, issue #20). */}
+        {/* Annulla torna all'elenco utenti (RF_AD_7), che è la pagina iniziale dell'amministratore. */}
         <Link href="/amministratore" className={cn(buttonVariants({ variant: "outline", className: CLASSE_PULSANTE }))}>
           Annulla
         </Link>

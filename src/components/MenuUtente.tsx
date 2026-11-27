@@ -2,23 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ChevronsUpDownIcon, CircleX } from "lucide-react";
+import { AvatarUtente, PannelloMenuUtente } from "@/components/PannelloMenuUtente";
+import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { PERCORSO_CAMBIA_PASSWORD } from "@/lib/aree";
 import {
   calcolaIniziali,
   ETICHETTE_RUOLO,
@@ -31,16 +24,21 @@ type MenuUtenteProps = {
   modalitaPaziente: boolean;
 };
 
-// Menu utente con nome, e-mail, ruolo e logout collegato a POST /api/auth/logout (RF_UE_2).
+// Trigger e stato del menu utente nel footer della sidebar (RF_UE_2, RF_UE_3).
 export function MenuUtente({ utente, modalitaPaziente }: MenuUtenteProps) {
   const router = useRouter();
-  const { isMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const [uscitaInCorso, setUscitaInCorso] = useState(false);
   const [erroreLogout, setErroreLogout] = useState("");
 
   const nomeCompleto = `${utente.nome} ${utente.cognome}`.trim();
   const etichettaRuolo = ETICHETTE_RUOLO[utente.ruolo];
   const iniziali = calcolaIniziali(utente.nome, utente.cognome);
+
+  function apriCambiaPassword() {
+    setOpenMobile(false);
+    router.push(PERCORSO_CAMBIA_PASSWORD);
+  }
 
   async function esci() {
     setErroreLogout("");
@@ -51,6 +49,7 @@ export function MenuUtente({ utente, modalitaPaziente }: MenuUtenteProps) {
         setErroreLogout("Uscita non riuscita, riprova.");
         return;
       }
+      setOpenMobile(false);
       router.push("/login");
       router.refresh();
     } catch {
@@ -71,113 +70,63 @@ export function MenuUtente({ utente, modalitaPaziente }: MenuUtenteProps) {
               <SidebarMenuButton
                 size="lg"
                 tooltip={nomeCompleto}
-                className={cn(
-                  "h-auto min-h-12 py-2 aria-expanded:bg-muted group-data-[collapsible=icon]:min-h-0",
-                  modalitaPaziente && "text-foreground",
-                )}
+                className="h-auto min-h-14 rounded-xl border border-sidebar-border/80 bg-card/85 px-2.5 py-2 shadow-2xs transition-[background-color,border-color,box-shadow,transform] duration-150 hover:border-sidebar-border hover:bg-card active:scale-[0.985] aria-expanded:border-sidebar-border aria-expanded:bg-card focus-visible:ring-3 focus-visible:ring-sidebar-ring/40 motion-reduce:transition-none motion-reduce:transform-none group-data-[collapsible=icon]:min-h-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:shadow-none"
               />
             }
           >
-            <Avatar>
-              <AvatarFallback
-                className={cn(
-                  modalitaPaziente && "font-semibold text-foreground",
-                )}
-              >
-                {iniziali}
-              </AvatarFallback>
-            </Avatar>
-            <div className="grid flex-1 text-left leading-tight">
+            <AvatarUtente
+              iniziali={iniziali}
+              className={cn(
+                "group-data-[collapsible=icon]:size-8",
+                modalitaPaziente ? "size-10" : "size-9",
+              )}
+              classeTesto={
+                modalitaPaziente
+                  ? "text-lg group-data-[collapsible=icon]:text-xs"
+                  : "text-xs"
+              }
+            />
+            <div className="grid flex-1 text-left leading-snug group-data-[collapsible=icon]:hidden">
               <span
                 className={cn(
-                  "truncate font-medium",
-                  modalitaPaziente ? "text-base text-foreground" : "text-sm",
+                  "truncate font-semibold text-foreground",
+                  modalitaPaziente ? "text-lg" : "text-sm",
                 )}
               >
                 {nomeCompleto}
               </span>
               <span
                 className={cn(
-                  "truncate",
+                  "truncate font-medium",
                   modalitaPaziente
-                    ? "text-sm font-medium text-foreground/85"
-                    : "text-xs font-medium text-muted-foreground",
+                    ? "text-lg text-foreground/85"
+                    : "text-xs text-muted-foreground",
                 )}
               >
                 {etichettaRuolo}
               </span>
-              <span
-                className={cn(
-                  "truncate",
-                  modalitaPaziente
-                    ? "text-sm text-foreground/80"
-                    : "text-xs text-muted-foreground",
-                )}
-              >
-                {utente.email}
-              </span>
             </div>
-            <ChevronsUpDownIcon className="ml-auto size-4" aria-hidden="true" />
+            <ChevronsUpDownIcon
+              className={cn(
+                "ml-auto shrink-0 group-data-[collapsible=icon]:hidden",
+                modalitaPaziente
+                  ? "size-5 text-foreground"
+                  : "size-4 text-muted-foreground",
+              )}
+              aria-hidden="true"
+            />
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent
-            className="min-w-60"
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={4}
-          >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1.5 py-1.5 text-left">
-                  <Avatar>
-                    <AvatarFallback>{iniziali}</AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-left leading-tight">
-                    <span
-                      className={cn(
-                        "truncate font-semibold text-foreground",
-                        modalitaPaziente ? "text-base" : "text-sm",
-                      )}
-                    >
-                      {nomeCompleto}
-                    </span>
-                    <span
-                      className={cn(
-                        "truncate font-medium",
-                        modalitaPaziente
-                          ? "text-sm text-foreground/90"
-                          : "text-xs text-muted-foreground",
-                      )}
-                    >
-                      {etichettaRuolo}
-                    </span>
-                    <span
-                      className={cn(
-                        "truncate",
-                        modalitaPaziente
-                          ? "text-sm text-foreground/80"
-                          : "text-xs text-muted-foreground",
-                      )}
-                    >
-                      {utente.email}
-                    </span>
-                  </div>
-                </div>
-              </DropdownMenuLabel>
-            </DropdownMenuGroup>
-
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem
-              variant="destructive"
-              disabled={uscitaInCorso}
-              onClick={esci}
-              className={cn(modalitaPaziente && "py-2.5 text-lg font-medium")}
-            >
-              <LogOutIcon aria-hidden="true" />
-              <span>{uscitaInCorso ? "Uscita in corso…" : "Logout"}</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
+          <PannelloMenuUtente
+            utente={utente}
+            nomeCompleto={nomeCompleto}
+            iniziali={iniziali}
+            modalitaPaziente={modalitaPaziente}
+            isMobile={isMobile}
+            uscitaInCorso={uscitaInCorso}
+            onCambiaPassword={apriCambiaPassword}
+            onEsci={esci}
+          />
         </DropdownMenu>
       </SidebarMenuItem>
 
@@ -186,11 +135,18 @@ export function MenuUtente({ utente, modalitaPaziente }: MenuUtenteProps) {
           <p
             role="alert"
             className={cn(
-              "px-2 py-1 text-red-700 group-data-[collapsible=icon]:hidden",
-              modalitaPaziente ? "text-base font-medium" : "text-xs",
+              "mt-1.5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-medium text-red-800 group-data-[collapsible=icon]:hidden",
+              modalitaPaziente ? "text-lg" : "text-xs",
             )}
           >
-            {erroreLogout}
+            <CircleX
+              aria-hidden="true"
+              className={cn(
+                "mt-0.5 shrink-0",
+                modalitaPaziente ? "size-5" : "size-4",
+              )}
+            />
+            <span>{erroreLogout}</span>
           </p>
         </SidebarMenuItem>
       )}
