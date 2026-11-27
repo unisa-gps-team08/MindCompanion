@@ -1,31 +1,26 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Avviso } from "@/components/Avviso";
-import { PastoFieldset } from "@/components/PastoFieldset";
+import { PastiSettimanaFieldset } from "@/components/PastiSettimanaFieldset";
 import { RaccomandazioniPiano, type Raccomandazione } from "@/components/RaccomandazioniPiano";
-import { idScheda, SchedeGiorni } from "@/components/SchedeGiorni";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   bozzaInPiano,
-  contaVociCompilate,
   creaBozzaVuota,
+  pianoInBozza,
   type BozzaPianoAlimentare,
   type VoceAlimento,
 } from "@/lib/bozzaPianoAlimentare";
-import {
-  chiavePasto,
-  ETICHETTE_GIORNO,
-  ETICHETTE_PASTO,
-  GIORNI_SETTIMANA,
-  TIPI_PASTO,
-  type GiornoSettimana,
-} from "@/lib/pianoAlimentare";
+import { GIORNI_SETTIMANA, type GiornoSettimana, type PianoAlimentareDettaglio } from "@/lib/pianoAlimentare";
 import { validaPianoAlimentare, type ErroriPianoAlimentare } from "@/lib/validazionePianoAlimentare";
 
-const ID_PANNELLO = "pannello-giorno";
 const PERCORSO_RITORNO = "/nutrizionista";
+
+/** Parametro che la vista del piano legge per mostrare il toast di salvataggio (RF_NT_4). */
+export const PARAMETRO_ESITO_MODIFICA = "esito=modificato";
 
 // Invio in un campo di testo pubblicherebbe il piano a metà compilazione: si pubblica
 // solo con il pulsante.
@@ -38,17 +33,28 @@ function primoGiornoConErrori(errori: ErroriPianoAlimentare): GiornoSettimana | 
   return GIORNI_SETTIMANA.find((giorno) => Object.keys(errori).some((chiave) => chiave.startsWith(`pasti.${giorno}.`)));
 }
 
+type CreaPianoAlimentareFormProps = {
+  pazienteId: string;
+  /** Piano da modificare (RF_NT_4): se presente il form parte precompilato e salva con PUT. */
+  pianoIniziale?: PianoAlimentareDettaglio;
+};
+
 // CreaPianoAlimentareForm (RF_NT_1, UI_NT_1): il nutrizionista compila i pasti della settimana,
-// giorno per giorno, e le raccomandazioni, poi pubblica il piano del paziente.
-export function CreaPianoAlimentareForm({ pazienteId }: { pazienteId: string }) {
-  const [bozza, setBozza] = useState<BozzaPianoAlimentare>(creaBozzaVuota);
+// giorno per giorno, e le raccomandazioni, poi pubblica il piano del paziente. Con un piano
+// iniziale è il form di ModificaPianoAlimentare (RF_NT_4).
+export function CreaPianoAlimentareForm({ pazienteId, pianoIniziale }: CreaPianoAlimentareFormProps) {
+  const router = useRouter();
+  const modifica = pianoIniziale !== undefined;
+  const percorsoPiano = `/nutrizionista/pazienti/${encodeURIComponent(pazienteId)}/piano-alimentare`;
+  const [bozza, setBozza] = useState<BozzaPianoAlimentare>(() =>
+    pianoIniziale ? pianoInBozza(pianoIniziale) : creaBozzaVuota(),
+  );
   const [giorno, setGiorno] = useState<GiornoSettimana>("LUNEDI");
   const [errori, setErrori] = useState<ErroriPianoAlimentare>({});
   const [messaggio, setMessaggio] = useState<string | null>(null);
   const [pubblicato, setPubblicato] = useState(false);
   const [inCorso, setInCorso] = useState(false);
   const [tentativiFalliti, setTentativiFalliti] = useState(0);
-  const contatore = useRef(0);
   const modulo = useRef<HTMLFormElement>(null);
 
   // Dopo un invio non riuscito il focus va al primo campo da correggere (o al messaggio),
@@ -58,10 +64,10 @@ export function CreaPianoAlimentareForm({ pazienteId }: { pazienteId: string }) 
     modulo.current?.querySelector<HTMLElement>('input[aria-invalid="true"], textarea[aria-invalid="true"], [data-errore]')?.focus();
   }, [tentativiFalliti]);
 
-  function aggiornaVoci(chiave: string, modifica: (voci: VoceAlimento[]) => VoceAlimento[]) {
+  function aggiornaVoci(chiave: string, cambia: (voci: VoceAlimento[]) => VoceAlimento[]) {
     setBozza((precedente) => ({
       ...precedente,
-      pasti: { ...precedente.pasti, [chiave]: modifica(precedente.pasti[chiave] ?? []) },
+      pasti: { ...precedente.pasti, [chiave]: cambia(precedente.pasti[chiave] ?? []) },
     }));
   }
 
@@ -77,13 +83,13 @@ export function CreaPianoAlimentareForm({ pazienteId }: { pazienteId: string }) 
     setTentativiFalliti((n) => n + 1);
   }
 
-  async function pubblica(evento: FormEvent<HTMLFormElement>) {
+  async function invia(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
-    const piano = bozzaInPiano(bozza);
-    const esito = validaPianoAlimentare(piano);
+    const esito = validaPianoAlimentare(bozzaInPiano(bozza));
     if (!esito.valido) {
       const numero = Object.keys(esito.errori).length;
-      mostraErrori(esito.errori, `Il piano non è stato pubblicato: ${numero} ${numero === 1 ? "punto" : "punti"} da correggere.`);
+      const azione = modifica ? "salvato" : "pubblicato";
+      mostraErrori(esito.errori, `Il piano non è stato ${azione}: ${numero} ${numero === 1 ? "punto" : "punti"} da correggere.`);
       return;
     }
 
@@ -92,16 +98,18 @@ export function CreaPianoAlimentareForm({ pazienteId }: { pazienteId: string }) 
     setInCorso(true);
     try {
       const risposta = await fetch(`/api/nutritionist/patients/${encodeURIComponent(pazienteId)}/meal-plan`, {
-        method: "POST",
+        method: modifica ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(esito.valori),
       });
       if (risposta.ok) {
-        setPubblicato(true);
+        // In modifica si torna al piano, che mostra il toast e le modifiche salvate.
+        if (modifica) router.push(`${percorsoPiano}?${PARAMETRO_ESITO_MODIFICA}`);
+        else setPubblicato(true);
         return;
       }
       const dati = (await risposta.json().catch(() => ({}))) as { errore?: string; campi?: ErroriPianoAlimentare };
-      mostraErrori(dati.campi ?? {}, dati.errore ?? "Pubblicazione non riuscita.");
+      mostraErrori(dati.campi ?? {}, dati.errore ?? (modifica ? "Salvataggio non riuscito." : "Pubblicazione non riuscita."));
     } catch {
       mostraErrori(errori, "Servizio non raggiungibile, controlla la connessione e riprova.");
     } finally {
@@ -121,75 +129,38 @@ export function CreaPianoAlimentareForm({ pazienteId }: { pazienteId: string }) 
     );
   }
 
-  const pastiPerGiorno = Object.fromEntries(
-    GIORNI_SETTIMANA.map((g) => [g, TIPI_PASTO.filter((t) => contaVociCompilate(bozza.pasti[chiavePasto(g, t)]) > 0).length]),
-  ) as Record<GiornoSettimana, number>;
-  const giorniConErrori = new Set(GIORNI_SETTIMANA.filter((g) => TIPI_PASTO.some((t) => errori[chiavePasto(g, t)])));
+  const etichettaInvio = modifica
+    ? inCorso ? "Salvataggio in corso…" : "Salva modifiche"
+    : inCorso ? "Pubblicazione in corso…" : "Pubblica piano alimentare";
 
   return (
-    <form
-      ref={modulo}
-      onSubmit={pubblica}
-      onKeyDown={bloccaInvioDaCampo}
-      noValidate
-      className="flex min-w-0 flex-col gap-6"
-    >
+    <form ref={modulo} onSubmit={invia} onKeyDown={bloccaInvioDaCampo} noValidate className="flex min-w-0 flex-col gap-6">
       {/* UC_NT_1, flusso 4.a1: il questionario alimentare non è in questo sprint. */}
-      <Avviso tipo="informazione">
-        Le risposte al questionario alimentare non sono ancora disponibili. Puoi comunque compilare
-        e pubblicare il piano alimentare del paziente.
-      </Avviso>
-      <section aria-labelledby="titolo-pasti" className="flex flex-col gap-4">
-        <h2 id="titolo-pasti" className="text-xl font-semibold">
-          Pasti della settimana
-        </h2>
-        <SchedeGiorni
-          idPannello={ID_PANNELLO}
-          giornoAttivo={giorno}
-          pastiPerGiorno={pastiPerGiorno}
-          giorniConErrori={giorniConErrori}
-          onSeleziona={setGiorno}
-        />
-        <div id={ID_PANNELLO} role="tabpanel" aria-labelledby={idScheda(giorno)} className="grid gap-4 lg:grid-cols-2">
-          {TIPI_PASTO.map((tipo) => {
-            const chiave = chiavePasto(giorno, tipo);
-            return (
-              <PastoFieldset
-                key={chiave}
-                chiave={chiave}
-                titolo={`${ETICHETTE_PASTO[tipo]} di ${ETICHETTE_GIORNO[giorno].toLowerCase()}`}
-                voci={bozza.pasti[chiave] ?? []}
-                errore={errori[chiave]}
-                onModificaVoce={(id, campo, valore) =>
-                  aggiornaVoci(chiave, (voci) => voci.map((v) => (v.id === id ? { ...v, [campo]: valore } : v)))
-                }
-                onAggiungiVoce={() =>
-                  aggiornaVoci(chiave, (voci) => [...voci, { id: `${chiave}-n${++contatore.current}`, alimento: "", porzione: "" }])
-                }
-                onRimuoviVoce={(id) => aggiornaVoci(chiave, (voci) => voci.filter((v) => v.id !== id))}
-              />
-            );
-          })}
-        </div>
-        {errori.pasti && (
-          <p data-errore tabIndex={-1} className="text-base text-destructive outline-none">
-            {errori.pasti}
-          </p>
-        )}
-      </section>
-
-      <RaccomandazioniPiano
-        valori={bozza}
+      {!modifica && (
+        <Avviso tipo="informazione">
+          Le risposte al questionario alimentare non sono ancora disponibili. Puoi comunque compilare
+          e pubblicare il piano alimentare del paziente.
+        </Avviso>
+      )}
+      <PastiSettimanaFieldset
+        pasti={bozza.pasti}
         errori={errori}
-        onModifica={aggiornaRaccomandazione}
+        giorno={giorno}
+        onSelezionaGiorno={setGiorno}
+        onAggiornaVoci={aggiornaVoci}
       />
 
+      <RaccomandazioniPiano valori={bozza} errori={errori} onModifica={aggiornaRaccomandazione} />
+
       <div className="flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-end">
-        <Link href={PERCORSO_RITORNO} className={buttonVariants({ variant: "outline", className: "h-11 px-4 text-base" })}>
+        <Link
+          href={modifica ? percorsoPiano : PERCORSO_RITORNO}
+          className={buttonVariants({ variant: "outline", className: "h-11 px-4 text-base" })}
+        >
           Annulla
         </Link>
         <Button type="submit" className="h-11 px-4 text-base" disabled={inCorso}>
-          {inCorso ? "Pubblicazione in corso…" : "Pubblica piano alimentare"}
+          {etichettaInvio}
         </Button>
       </div>
       <p role="status" data-errore={messaggio ? true : undefined} tabIndex={-1} className="text-base text-destructive outline-none empty:hidden">

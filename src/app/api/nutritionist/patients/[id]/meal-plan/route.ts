@@ -1,6 +1,6 @@
 import { connectDB } from "@/db/connect";
 import { Paziente } from "@/db/models/Paziente";
-import { leggiPianoAlimentare, PianoAlimentare, salvaPiano } from "@/db/models/PianoAlimentare";
+import { leggiPianoAlimentare, modifica, PianoAlimentare, salvaPiano } from "@/db/models/PianoAlimentare";
 import { richiediRuolo } from "@/lib/autorizzazione";
 import { validaPianoAlimentare } from "@/lib/validazionePianoAlimentare";
 
@@ -56,6 +56,7 @@ export async function POST(request: Request, { params }: Contesto) {
 }
 
 // I dati sanitari del piano non vanno in cache.
+const MESSAGGIO_PIANO_ASSENTE = "Il paziente non ha ancora un piano alimentare.";
 const INTESTAZIONI_NO_CACHE = { "Cache-Control": "no-store" };
 
 // VisualizzaPianoAlimentareControl (RF_NT_7): il nutrizionista associato legge il piano
@@ -80,7 +81,7 @@ export async function GET(_request: Request, { params }: Contesto) {
     const piano = await leggiPianoAlimentare(id);
     if (!piano) {
       return Response.json(
-        { errore: "Il paziente non ha ancora un piano alimentare.", pianoAssente: true },
+        { errore: MESSAGGIO_PIANO_ASSENTE, pianoAssente: true },
         { status: 404, headers: INTESTAZIONI_NO_CACHE },
       );
     }
@@ -90,5 +91,35 @@ export async function GET(_request: Request, { params }: Contesto) {
       { errore: "Servizio non disponibile, riprova più tardi." },
       { status: 503, headers: INTESTAZIONI_NO_CACHE },
     );
+  }
+}
+
+// ModificaPianoAlimentareControl (RF_NT_4): il nutrizionista associato sostituisce il piano del
+// paziente. Con dati non validi risponde 400 e il piano salvato resta invariato.
+export async function PUT(request: Request, { params }: Contesto) {
+  const { utente, risposta } = await richiediRuolo("NUTRIZIONISTA");
+  if (risposta) return risposta;
+
+  const { id } = await params;
+  if (!REGEX_ID.test(id)) {
+    return Response.json({ errore: MESSAGGIO_PAZIENTE_NON_ASSOCIATO }, { status: 403 });
+  }
+
+  const esito = validaPianoAlimentare(await request.json().catch(() => null));
+  if (!esito.valido) {
+    return Response.json({ errore: "Controlla i campi evidenziati.", campi: esito.errori }, { status: 400 });
+  }
+
+  try {
+    await connectDB();
+    if (!(await Paziente.exists({ _id: id, nutrizionista: utente._id }))) {
+      return Response.json({ errore: MESSAGGIO_PAZIENTE_NON_ASSOCIATO }, { status: 403 });
+    }
+    if (!(await modifica(id, esito.valori))) {
+      return Response.json({ errore: MESSAGGIO_PIANO_ASSENTE, pianoAssente: true }, { status: 404 });
+    }
+    return Response.json({ id }, { status: 200 });
+  } catch {
+    return Response.json({ errore: "Servizio non disponibile, riprova più tardi." }, { status: 503 });
   }
 }

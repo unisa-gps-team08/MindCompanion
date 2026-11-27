@@ -4,6 +4,7 @@ import {
   GIORNI_SETTIMANA,
   TIPI_PASTO,
   type GiornoSettimana,
+  type NuovoPianoAlimentare,
   type PastoInserito,
   type PianoAlimentareDettaglio,
   type TipoPasto,
@@ -115,4 +116,26 @@ export async function leggiPianoAlimentare(
       porzioni: [...pasto.porzioni],
     })),
   };
+}
+
+/**
+ * modifica (RF_NT_4, class diagram): sostituisce pasti e raccomandazioni del piano del
+ * paziente e aggiorna la data di ultima modifica. Restituisce false se il piano non esiste.
+ * Gli array si assegnano interi, così i setter dello schema li cifrano di nuovo.
+ */
+export async function modifica(
+  pazienteId: string,
+  valori: NuovoPianoAlimentare,
+): Promise<boolean> {
+  const piano = await PianoAlimentare.findOne({ paziente: pazienteId });
+  if (!piano) return false;
+
+  piano.set({
+    pasti: valori.pasti,
+    raccomandazioniIdriche: valori.raccomandazioniIdriche,
+    raccomandazioniNutrizionali: valori.raccomandazioniNutrizionali,
+    dataUltimaModifica: new Date(),
+  });
+  await piano.save();
+  return true;
 }
