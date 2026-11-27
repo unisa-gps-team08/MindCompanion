@@ -118,6 +118,7 @@ const SOTTOPAGINE_NOTE: Record<string, string> = {
 };
 
 const PATTERN_MODIFICA_UTENTE = /^\/amministratore\/utenti\/[^/]+\/modifica$/;
+const PATTERN_SCHEDA_PAZIENTE = /^\/(nutrizionista|medico|tutore)\/pazienti\/[^/]+$/;
 
 function ricavaSottoPagina(pathname: string): string | undefined {
   if (SOTTOPAGINE_NOTE[pathname]) {
@@ -125,6 +126,9 @@ function ricavaSottoPagina(pathname: string): string | undefined {
   }
   if (PATTERN_MODIFICA_UTENTE.test(pathname)) {
     return "Modifica utente";
+  }
+  if (PATTERN_SCHEDA_PAZIENTE.test(pathname)) {
+    return "Scheda paziente";
   }
   return undefined;
 }
