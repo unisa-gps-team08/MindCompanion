@@ -1,8 +1,8 @@
 import { connectDB } from "@/db/connect";
 import { Paziente } from "@/db/models/Paziente";
-import { leggiPianoAlimentare, PianoAlimentare, salvaPiano } from "@/db/models/PianoAlimentare";
-import { richiediRuolo } from "@/lib/autorizzazione";
-import { validaPianoAlimentare } from "@/lib/validazionePianoAlimentare";
+import { leggiPianoAlimentare, modifica, PianoAlimentare, salvaPiano } from "@/db/models/PianoAlimentare";
+import { richiediRuolo, type EsitoAutorizzazione } from "@/lib/autorizzazione";
+import { validaPianoAlimentare, type EsitoValidazionePiano } from "@/lib/validazionePianoAlimentare";
 
 // Come la scheda paziente (RF_NT_6): 403 con lo stesso messaggio per id non valido, paziente
 // inesistente o associato a un altro nutrizionista, così la risposta non rivela se esiste.
@@ -18,21 +18,39 @@ function isChiaveDuplicata(errore: unknown): boolean {
   return typeof errore === "object" && errore !== null && "code" in errore && errore.code === 11000;
 }
 
-// CreaPianoAlimentareControl (RF_NT_1): solo il nutrizionista associato al paziente (RF_AD_8)
-// crea il suo piano alimentare, al massimo uno per paziente.
-export async function POST(request: Request, { params }: Contesto) {
+type RichiestaPiano =
+  | { risposta: Response }
+  | {
+      risposta?: undefined;
+      utente: NonNullable<EsitoAutorizzazione["utente"]>;
+      id: string;
+      esito: Extract<EsitoValidazionePiano, { valido: true }>;
+    };
+
+// Controlli comuni di POST e PUT, prima di accedere al database: ruolo, formato dell'id e dati
+// del piano. L'associazione con il paziente la verifica poi ogni metodo.
+async function controllaRichiestaPiano(request: Request, params: Contesto["params"]): Promise<RichiestaPiano> {
   const { utente, risposta } = await richiediRuolo("NUTRIZIONISTA");
-  if (risposta) return risposta;
+  if (risposta) return { risposta };
 
   const { id } = await params;
   if (!REGEX_ID.test(id)) {
-    return Response.json({ errore: MESSAGGIO_PAZIENTE_NON_ASSOCIATO }, { status: 403 });
+    return { risposta: Response.json({ errore: MESSAGGIO_PAZIENTE_NON_ASSOCIATO }, { status: 403 }) };
   }
 
   const esito = validaPianoAlimentare(await request.json().catch(() => null));
   if (!esito.valido) {
-    return Response.json({ errore: "Controlla i campi evidenziati.", campi: esito.errori }, { status: 400 });
+    return { risposta: Response.json({ errore: "Controlla i campi evidenziati.", campi: esito.errori }, { status: 400 }) };
   }
+  return { utente, id, esito };
+}
+
+// CreaPianoAlimentareControl (RF_NT_1): solo il nutrizionista associato al paziente (RF_AD_8)
+// crea il suo piano alimentare, al massimo uno per paziente.
+export async function POST(request: Request, { params }: Contesto) {
+  const richiesta = await controllaRichiestaPiano(request, params);
+  if (richiesta.risposta) return richiesta.risposta;
+  const { utente, id, esito } = richiesta;
 
   try {
     await connectDB();
@@ -56,6 +74,7 @@ export async function POST(request: Request, { params }: Contesto) {
 }
 
 // I dati sanitari del piano non vanno in cache.
+const MESSAGGIO_PIANO_ASSENTE = "Il paziente non ha ancora un piano alimentare.";
 const INTESTAZIONI_NO_CACHE = { "Cache-Control": "no-store" };
 
 // VisualizzaPianoAlimentareControl (RF_NT_7): il nutrizionista associato legge il piano
@@ -80,7 +99,7 @@ export async function GET(_request: Request, { params }: Contesto) {
     const piano = await leggiPianoAlimentare(id);
     if (!piano) {
       return Response.json(
-        { errore: "Il paziente non ha ancora un piano alimentare.", pianoAssente: true },
+        { errore: MESSAGGIO_PIANO_ASSENTE, pianoAssente: true },
         { status: 404, headers: INTESTAZIONI_NO_CACHE },
       );
     }
@@ -90,5 +109,26 @@ export async function GET(_request: Request, { params }: Contesto) {
       { errore: "Servizio non disponibile, riprova più tardi." },
       { status: 503, headers: INTESTAZIONI_NO_CACHE },
     );
+  }
+}
+
+// ModificaPianoAlimentareControl (RF_NT_4): il nutrizionista associato sostituisce il piano del
+// paziente. Con dati non validi risponde 400 e il piano salvato resta invariato.
+export async function PUT(request: Request, { params }: Contesto) {
+  const richiesta = await controllaRichiestaPiano(request, params);
+  if (richiesta.risposta) return richiesta.risposta;
+  const { utente, id, esito } = richiesta;
+
+  try {
+    await connectDB();
+    if (!(await Paziente.exists({ _id: id, nutrizionista: utente._id }))) {
+      return Response.json({ errore: MESSAGGIO_PAZIENTE_NON_ASSOCIATO }, { status: 403 });
+    }
+    if (!(await modifica(id, esito.valori))) {
+      return Response.json({ errore: MESSAGGIO_PIANO_ASSENTE, pianoAssente: true }, { status: 404 });
+    }
+    return Response.json({ id }, { status: 200 });
+  } catch {
+    return Response.json({ errore: "Servizio non disponibile, riprova più tardi." }, { status: 503 });
   }
 }
