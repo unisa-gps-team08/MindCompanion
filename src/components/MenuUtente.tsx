@@ -2,9 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronsUpDownIcon, CircleX } from "lucide-react";
-import { AvatarUtente, PannelloMenuUtente } from "@/components/PannelloMenuUtente";
-import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ChevronsUpDownIcon, KeyRoundIcon, LogOutIcon, CircleX } from "lucide-react";
+import { AvatarUtente } from "@/components/PannelloMenuUtente";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -24,7 +33,8 @@ type MenuUtenteProps = {
   modalitaPaziente: boolean;
 };
 
-// Trigger e stato del menu utente nel footer della sidebar (RF_UE_2, RF_UE_3).
+// Menu utente con nome, e-mail, ruolo, cambio password (RF_UE_3) e logout collegato a
+// POST /api/auth/logout (RF_UE_2).
 export function MenuUtente({ utente, modalitaPaziente }: MenuUtenteProps) {
   const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar();
@@ -118,16 +128,73 @@ export function MenuUtente({ utente, modalitaPaziente }: MenuUtenteProps) {
             />
           </DropdownMenuTrigger>
 
-          <PannelloMenuUtente
-            utente={utente}
-            nomeCompleto={nomeCompleto}
-            iniziali={iniziali}
-            modalitaPaziente={modalitaPaziente}
-            isMobile={isMobile}
-            uscitaInCorso={uscitaInCorso}
-            onCambiaPassword={apriCambiaPassword}
-            onEsci={esci}
-          />
+          <DropdownMenuContent
+            className="min-w-60"
+            side={isMobile ? "bottom" : "right"}
+            align="end"
+            sideOffset={4}
+          >
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1.5 py-1.5 text-left">
+                  <Avatar>
+                    <AvatarFallback>{iniziali}</AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left leading-tight">
+                    <span
+                      className={cn(
+                        "truncate font-semibold text-foreground",
+                        modalitaPaziente ? "text-base" : "text-sm",
+                      )}
+                    >
+                      {nomeCompleto}
+                    </span>
+                    <span
+                      className={cn(
+                        "truncate font-medium",
+                        modalitaPaziente
+                          ? "text-sm text-foreground/90"
+                          : "text-xs text-muted-foreground",
+                      )}
+                    >
+                      {etichettaRuolo}
+                    </span>
+                    <span
+                      className={cn(
+                        "truncate",
+                        modalitaPaziente
+                          ? "text-sm text-foreground/80"
+                          : "text-xs text-muted-foreground",
+                      )}
+                    >
+                      {utente.email}
+                    </span>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
+
+            <DropdownMenuSeparator />
+
+            {/* CambiaPasswordButton (RF_UE_3): apre CambiaPasswordForm. */}
+            <DropdownMenuItem
+              onClick={() => router.push(PERCORSO_CAMBIA_PASSWORD)}
+              className={cn(modalitaPaziente && "py-2.5 text-lg font-medium")}
+            >
+              <KeyRoundIcon aria-hidden="true" />
+              <span>Cambia password</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              variant="destructive"
+              disabled={uscitaInCorso}
+              onClick={esci}
+              className={cn(modalitaPaziente && "py-2.5 text-lg font-medium")}
+            >
+              <LogOutIcon aria-hidden="true" />
+              <span>{uscitaInCorso ? "Uscita in corso…" : "Logout"}</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
 
