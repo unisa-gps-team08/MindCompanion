@@ -70,7 +70,8 @@ export function MenuUtente({ utente, modalitaPaziente }: MenuUtenteProps) {
               <SidebarMenuButton
                 size="lg"
                 tooltip={nomeCompleto}
-                className="h-auto min-h-14 rounded-xl border border-sidebar-border/80 bg-card/85 px-2.5 py-2 shadow-2xs transition-[background-color,border-color,box-shadow,transform] duration-150 hover:border-sidebar-border hover:bg-card active:scale-[0.985] aria-expanded:border-sidebar-border aria-expanded:bg-card focus-visible:ring-3 focus-visible:ring-sidebar-ring/40 motion-reduce:transition-none motion-reduce:transform-none group-data-[collapsible=icon]:min-h-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:shadow-none"
+                aria-label={nomeCompleto}
+                className="h-auto min-h-14 rounded-xl border border-sidebar-border/80 bg-card/85 px-2.5 py-2 shadow-2xs transition-[background-color,border-color,box-shadow,transform] duration-150 hover:border-sidebar-border hover:bg-card active:scale-[0.985] aria-expanded:border-sidebar-border aria-expanded:bg-card focus-visible:ring-3 focus-visible:ring-sidebar-ring/40 motion-reduce:transition-none motion-reduce:transform-none group-data-[collapsible=icon]:min-h-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:shadow-none group-data-[collapsible=icon]:hover:bg-transparent group-data-[collapsible=icon]:aria-expanded:bg-transparent"
               />
             }
           >
