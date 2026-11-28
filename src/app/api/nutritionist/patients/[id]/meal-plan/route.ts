@@ -1,6 +1,6 @@
 import { connectDB } from "@/db/connect";
 import { Paziente } from "@/db/models/Paziente";
-import { creaPianoAlimentare, leggiPianoAlimentare, PianoAlimentare } from "@/db/models/PianoAlimentare";
+import { leggiPianoAlimentare, PianoAlimentare, salvaPiano } from "@/db/models/PianoAlimentare";
 import { richiediRuolo } from "@/lib/autorizzazione";
 import { validaPianoAlimentare } from "@/lib/validazionePianoAlimentare";
 
@@ -44,7 +44,8 @@ export async function POST(request: Request, { params }: Contesto) {
       return Response.json({ errore: MESSAGGIO_PIANO_ESISTENTE }, { status: 409 });
     }
 
-    const piano = await creaPianoAlimentare(id, esito.valori);
+    const { pasti, raccomandazioniIdriche, raccomandazioniNutrizionali } = esito.valori;
+    const piano = await salvaPiano(id, pasti, raccomandazioniIdriche, raccomandazioniNutrizionali);
     return Response.json({ id: piano._id.toString() }, { status: 201 });
   } catch (errore) {
     if (isChiaveDuplicata(errore)) {
@@ -54,9 +55,7 @@ export async function POST(request: Request, { params }: Contesto) {
   }
 }
 
-// Come la scheda paziente (RF_NT_6): 403 con lo stesso messaggio per id non valido, paziente
-// inesistente o associato a un altro nutrizionista. I dati sanitari non vanno in cache.
-const MESSAGGIO_ACCESSO_NEGATO = "Accesso negato: il paziente non è associato al tuo profilo.";
+// I dati sanitari del piano non vanno in cache.
 const INTESTAZIONI_NO_CACHE = { "Cache-Control": "no-store" };
 
 // VisualizzaPianoAlimentareControl (RF_NT_7): il nutrizionista associato legge il piano
@@ -67,15 +66,17 @@ export async function GET(_request: Request, { params }: Contesto) {
 
   const { id } = await params;
   if (!REGEX_ID.test(id)) {
-    return Response.json({ errore: MESSAGGIO_ACCESSO_NEGATO }, { status: 403, headers: INTESTAZIONI_NO_CACHE });
+    return Response.json({ errore: MESSAGGIO_PAZIENTE_NON_ASSOCIATO }, { status: 403, headers: INTESTAZIONI_NO_CACHE });
   }
 
   try {
     await connectDB();
     if (!(await Paziente.exists({ _id: id, nutrizionista: utente._id }))) {
-      return Response.json({ errore: MESSAGGIO_ACCESSO_NEGATO }, { status: 403, headers: INTESTAZIONI_NO_CACHE });
+      return Response.json({ errore: MESSAGGIO_PAZIENTE_NON_ASSOCIATO }, { status: 403, headers: INTESTAZIONI_NO_CACHE });
     }
 
+    // Due letture distinte: l'associazione sta nella collezione utenti, il piano in
+    // pianiAlimentari. Lo stesso controllo precede la creazione (POST).
     const piano = await leggiPianoAlimentare(id);
     if (!piano) {
       return Response.json(

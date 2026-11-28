@@ -4,7 +4,7 @@ import {
   GIORNI_SETTIMANA,
   TIPI_PASTO,
   type GiornoSettimana,
-  type NuovoPianoAlimentare,
+  type PastoInserito,
   type PianoAlimentareDettaglio,
   type TipoPasto,
 } from "@/lib/pianoAlimentare";
@@ -68,13 +68,24 @@ export const PianoAlimentare =
   model<PianoAlimentare>("PianoAlimentare", pianoAlimentareSchema);
 
 /**
- * creaPianoAlimentare (RF_NT_1): salva il piano alimentare di un paziente. I setter dello
- * schema cifrano con AES-256 raccomandazioni, alimenti e porzioni prima della scrittura.
+ * salvaPiano (RF_NT_1, class diagram e SD_UC_NT_1): salva il piano alimentare di un paziente.
+ * I setter dello schema cifrano con AES-256 raccomandazioni, alimenti e porzioni prima della
+ * scrittura.
  * Associazione con il nutrizionista e piano già esistente li verifica il chiamante;
  * l'indice univoco su paziente blocca comunque un secondo piano.
  */
-export async function creaPianoAlimentare(pazienteId: string, valori: NuovoPianoAlimentare) {
-  return PianoAlimentare.create({ paziente: pazienteId, ...valori });
+export async function salvaPiano(
+  pazienteId: string,
+  pasti: PastoInserito[],
+  raccomandazioniIdriche?: string,
+  raccomandazioniNutrizionali?: string,
+) {
+  return PianoAlimentare.create({
+    paziente: pazienteId,
+    pasti,
+    ...(raccomandazioniIdriche ? { raccomandazioniIdriche } : {}),
+    ...(raccomandazioniNutrizionali ? { raccomandazioniNutrizionali } : {}),
+  });
 }
 
 /**

@@ -114,11 +114,8 @@ export function CreaPianoAlimentareForm({ pazienteId }: { pazienteId: string }) 
       <div role="status" className="flex flex-col items-start gap-4 rounded-xl border p-6 text-lg">
         <p className="font-semibold">Piano alimentare pubblicato.</p>
         <p>I pasti e le raccomandazioni sono salvati nel piano del paziente.</p>
-        <Link
-          href={`/nutrizionista/pazienti/${encodeURIComponent(pazienteId)}/piano-alimentare`}
-          className={buttonVariants({ className: "h-11 px-4 text-base" })}
-        >
-          Visualizza piano alimentare
+        <Link href={PERCORSO_RITORNO} className={buttonVariants({ className: "h-11 px-4 text-base" })}>
+          Torna ai pazienti
         </Link>
       </div>
     );
