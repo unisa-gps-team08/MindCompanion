@@ -1,10 +1,11 @@
 "use client";
 
 import { Pencil, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { PastoLettura } from "@/components/PastoLettura";
 import { idScheda, SchedeGiorni } from "@/components/SchedeGiorni";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { VistaSettimanalePiano } from "@/components/VistaSettimanalePiano";
 import {
   chiavePasto,
@@ -37,11 +38,13 @@ type DettaglioPianoAlimentareProps = {
   piano: PianoAlimentareDettaglio;
   /** Modifica ed Elimina sono solo del nutrizionista (RF_NT_4, RF_NT_5). */
   mostraAzioni: boolean;
+  /** Pagina di ModificaPianoAlimentare (RF_NT_4). */
+  percorsoModifica: string;
 };
 
 // Contenuto di VisualizzaPianoAlimentarePage (RF_NT_7, SC_NT_4): vista giornaliera o
 // settimanale dello stesso piano, raccomandazioni e azioni del nutrizionista.
-export function DettaglioPianoAlimentare({ piano, mostraAzioni }: DettaglioPianoAlimentareProps) {
+export function DettaglioPianoAlimentare({ piano, mostraAzioni, percorsoModifica }: DettaglioPianoAlimentareProps) {
   const pastiPerChiave = useMemo(
     () => new Map<string, PastoInserito>(piano.pasti.map((p) => [chiavePasto(p.giorno, p.tipo), p])),
     [piano.pasti],
@@ -65,12 +68,12 @@ export function DettaglioPianoAlimentare({ piano, mostraAzioni }: DettaglioPiano
             ` · ultima modifica il ${FORMATO_DATA.format(new Date(piano.dataUltimaModifica))}`}
         </p>
         {mostraAzioni && (
-          // Le azioni arrivano con ModificaPianoAlimentare (#29) ed EliminaPianoAlimentare (#30).
+          // Elimina arriva con EliminaPianoAlimentare (RF_NT_5).
           <div className="flex gap-2">
-            <Button variant="outline" className="h-11 px-4 text-base" disabled>
+            <Link href={percorsoModifica} className={buttonVariants({ variant: "outline", className: "h-11 px-4 text-base" })}>
               <Pencil aria-hidden="true" />
               Modifica
-            </Button>
+            </Link>
             <Button variant="destructive" className="h-11 px-4 text-base" disabled>
               <Trash2 aria-hidden="true" />
               Elimina
