@@ -1,8 +1,9 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { EliminaPianoAlimentareButton } from "@/components/EliminaPianoAlimentareButton";
 import { PastoLettura } from "@/components/PastoLettura";
 import { idScheda, SchedeGiorni } from "@/components/SchedeGiorni";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -38,13 +39,14 @@ type DettaglioPianoAlimentareProps = {
   piano: PianoAlimentareDettaglio;
   /** Modifica ed Elimina sono solo del nutrizionista (RF_NT_4, RF_NT_5). */
   mostraAzioni: boolean;
-  /** Pagina di ModificaPianoAlimentare (RF_NT_4). */
-  percorsoModifica: string;
+  pazienteId: string;
+  /** Scheda del paziente: da qui parte la modifica e qui si torna dopo l'eliminazione. */
+  percorsoScheda: string;
 };
 
 // Contenuto di VisualizzaPianoAlimentarePage (RF_NT_7, SC_NT_4): vista giornaliera o
 // settimanale dello stesso piano, raccomandazioni e azioni del nutrizionista.
-export function DettaglioPianoAlimentare({ piano, mostraAzioni, percorsoModifica }: DettaglioPianoAlimentareProps) {
+export function DettaglioPianoAlimentare({ piano, mostraAzioni, pazienteId, percorsoScheda }: DettaglioPianoAlimentareProps) {
   const pastiPerChiave = useMemo(
     () => new Map<string, PastoInserito>(piano.pasti.map((p) => [chiavePasto(p.giorno, p.tipo), p])),
     [piano.pasti],
@@ -68,16 +70,12 @@ export function DettaglioPianoAlimentare({ piano, mostraAzioni, percorsoModifica
             ` · ultima modifica il ${FORMATO_DATA.format(new Date(piano.dataUltimaModifica))}`}
         </p>
         {mostraAzioni && (
-          // Elimina arriva con EliminaPianoAlimentare (RF_NT_5).
           <div className="flex gap-2">
-            <Link href={percorsoModifica} className={buttonVariants({ variant: "outline", className: "h-11 px-4 text-base" })}>
+            <Link href={`${percorsoScheda}/piano-alimentare/modifica`} className={buttonVariants({ variant: "outline", className: "h-11 px-4 text-base" })}>
               <Pencil aria-hidden="true" />
               Modifica
             </Link>
-            <Button variant="destructive" className="h-11 px-4 text-base" disabled>
-              <Trash2 aria-hidden="true" />
-              Elimina
-            </Button>
+            <EliminaPianoAlimentareButton pazienteId={pazienteId} percorsoScheda={percorsoScheda} />
           </div>
         )}
       </div>

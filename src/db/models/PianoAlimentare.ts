@@ -139,3 +139,13 @@ export async function modifica(
   await piano.save();
   return true;
 }
+
+/**
+ * elimina (RF_NT_5, class diagram): elimina il piano del paziente. I pasti sono incorporati nel
+ * documento del piano, quindi spariscono con lui e non restano pasti orfani.
+ * Restituisce false se il paziente non aveva un piano.
+ */
+export async function elimina(pazienteId: string): Promise<boolean> {
+  const esito = await PianoAlimentare.deleteOne({ paziente: pazienteId });
+  return esito.deletedCount > 0;
+}
