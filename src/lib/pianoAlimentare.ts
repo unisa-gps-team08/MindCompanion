@@ -24,6 +24,19 @@ export type PastoInserito = {
   porzioni: string[];
 };
 
+/**
+ * Piano alimentare già decifrato restituito da GET /api/nutritionist/patients/[id]/meal-plan
+ * (RF_NT_7). Le date sono stringhe ISO perché il piano viaggia in JSON fino alla View.
+ */
+export type PianoAlimentareDettaglio = {
+  id: string;
+  dataCreazione: string;
+  dataUltimaModifica: string | null;
+  raccomandazioniIdriche?: string;
+  raccomandazioniNutrizionali?: string;
+  pasti: PastoInserito[];
+};
+
 /** Dati di un piano alimentare da salvare, dopo la validazione lato server. */
 export type NuovoPianoAlimentare = {
   raccomandazioniIdriche?: string;
