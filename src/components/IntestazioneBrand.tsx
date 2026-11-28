@@ -28,7 +28,8 @@ export function IntestazioneBrand({
         <SidebarMenuButton
           size="lg"
           tooltip="MindCompanion"
-          className="h-auto min-h-12 rounded-xl px-2 py-1.5 transition-[background-color,transform] duration-150 active:scale-[0.985] focus-visible:ring-3 focus-visible:ring-sidebar-ring/40 motion-reduce:transition-none motion-reduce:transform-none group-data-[collapsible=icon]:min-h-0 group-data-[collapsible=icon]:justify-center"
+          aria-label="MindCompanion"
+          className="h-auto min-h-12 rounded-xl px-2 py-1.5 transition-[background-color,transform] duration-150 active:scale-[0.985] focus-visible:ring-3 focus-visible:ring-sidebar-ring/40 motion-reduce:transition-none motion-reduce:transform-none group-data-[collapsible=icon]:min-h-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:rounded-lg"
           render={
             <Link href={percorsoHome} onClick={() => setOpenMobile(false)} />
           }
