@@ -3,6 +3,7 @@ import {
   GIORNI_SETTIMANA,
   TIPI_PASTO,
   type NuovoPianoAlimentare,
+  type PianoAlimentareDettaglio,
   type PastoInserito,
 } from "@/lib/pianoAlimentare";
 
@@ -62,4 +63,23 @@ export function bozzaInPiano(bozza: BozzaPianoAlimentare): NuovoPianoAlimentare 
     raccomandazioniNutrizionali: bozza.raccomandazioniNutrizionali.trim(),
     pasti,
   };
+}
+
+/**
+ * Bozza precompilata con un piano esistente, per ModificaPianoAlimentare (RF_NT_4). I pasti
+ * senza alimenti restano con una riga vuota da compilare, come nella bozza nuova.
+ */
+export function pianoInBozza(piano: PianoAlimentareDettaglio): BozzaPianoAlimentare {
+  const bozza = creaBozzaVuota();
+  for (const pasto of piano.pasti) {
+    const chiave = chiavePasto(pasto.giorno, pasto.tipo);
+    bozza.pasti[chiave] = pasto.alimenti.map((alimento, indice) => ({
+      id: `${chiave}-p${indice}`,
+      alimento,
+      porzione: pasto.porzioni[indice] ?? "",
+    }));
+  }
+  bozza.raccomandazioniIdriche = piano.raccomandazioniIdriche ?? "";
+  bozza.raccomandazioniNutrizionali = piano.raccomandazioniNutrizionali ?? "";
+  return bozza;
 }

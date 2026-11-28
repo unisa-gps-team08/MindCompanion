@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { Avviso } from "@/components/Avviso";
 import { DettaglioPianoAlimentare } from "@/components/DettaglioPianoAlimentare";
+import { ToastEsito, type DatiToast } from "@/components/ToastEsito";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PianoAlimentareDettaglio } from "@/lib/pianoAlimentare";
@@ -46,6 +47,19 @@ export function VisualizzaPianoAlimentarePage({
   gestionePiano,
 }: VisualizzaPianoAlimentarePageProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const parametri = useSearchParams();
+  // Dopo ModificaPianoAlimentare (RF_NT_4) il form torna qui con ?esito=modificato: si mostra
+  // il toast una volta e si toglie il parametro, così un ricaricamento non lo ripete.
+  const [toast, setToast] = useState<DatiToast | null>(() =>
+    parametri.get("esito") === "modificato"
+      ? { id: Date.now(), tipo: "successo", messaggio: "Piano alimentare aggiornato." }
+      : null,
+  );
+  const chiudiToast = useCallback(() => setToast(null), []);
+  useEffect(() => {
+    if (parametri.get("esito") === "modificato") router.replace(pathname, { scroll: false });
+  }, [parametri, pathname, router]);
   const [tentativo, setTentativo] = useState(0);
   const [stato, setStato] = useState<{ chiave: string; esito: Esito } | null>(null);
   const chiave = `${endpointApiBase}|${pazienteId}|${tentativo}`;
@@ -88,7 +102,16 @@ export function VisualizzaPianoAlimentarePage({
   }
 
   if (esito.tipo === "piano") {
-    return <DettaglioPianoAlimentare piano={esito.piano} mostraAzioni={gestionePiano} />;
+    return (
+      <>
+        <DettaglioPianoAlimentare
+          piano={esito.piano}
+          mostraAzioni={gestionePiano}
+          percorsoModifica={`${percorsoScheda}/piano-alimentare/modifica`}
+        />
+        <ToastEsito toast={toast} onChiudi={chiudiToast} />
+      </>
+    );
   }
 
   if (esito.tipo === "assente") {
